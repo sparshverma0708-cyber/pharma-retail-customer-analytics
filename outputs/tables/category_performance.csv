@@ -1,0 +1,8 @@
+category,revenue,units_sold,customer_count,product_count,invoice_count,revenue_share_pct,customer_reach_pct,revenue_per_customer,revenue_per_invoice,revenue_opportunity_score,customer_reach_score,performance_gap_score,priority_score,equal_weight_rank,priority_rank
+Vitamins,6350.99,678,212,4,456,22.14,70.67,29.96,13.93,100.0,96.8,0.0,69.04,3,3
+First Aid,4442.91,591,200,4,405,15.48,66.67,22.21,10.97,69.96,91.32,0.0,55.38,4,4
+OTC Pain Relief,4149.99,571,198,4,395,14.46,66.0,20.96,10.51,65.34,90.41,0.0,53.26,6,6
+Cold and Allergy,3777.92,631,219,4,429,13.17,73.0,17.25,8.81,59.49,100.0,59.54,71.66,2,2
+Wellness Accessories,3640.29,393,167,3,274,12.69,55.67,21.8,13.29,57.32,76.26,0.0,45.8,7,7
+Digestive Health,3331.05,438,174,3,308,11.61,58.0,19.14,10.82,52.45,79.45,28.63,53.4,5,5
+Personal Care,2998.83,589,203,4,397,10.45,67.67,14.77,7.55,47.22,92.69,100.0,76.7,1,1

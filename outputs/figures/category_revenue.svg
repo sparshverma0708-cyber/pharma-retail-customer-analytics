@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="416" viewBox="0 0 960 416">
+<rect width="100%" height="100%" fill="white"/>
+<text x="36" y="36" fill="#20323a" font-family="Arial, sans-serif" font-size="22" font-weight="bold">Revenue by category</text>
+<text x="213" y="99" text-anchor="end" fill="#20323a" font-family="Arial, sans-serif" font-size="14">Vitamins</text>
+<rect x="225" y="81" width="635.0" height="26" rx="3" fill="#247b8b"/>
+<text x="868.0" y="99" fill="#20323a" font-family="Arial, sans-serif" font-size="13">USD 6,351</text>
+<text x="213" y="141" text-anchor="end" fill="#20323a" font-family="Arial, sans-serif" font-size="14">First Aid</text>
+<rect x="225" y="123" width="444.2" height="26" rx="3" fill="#247b8b"/>
+<text x="677.2" y="141" fill="#20323a" font-family="Arial, sans-serif" font-size="13">USD 4,443</text>
+<text x="213" y="183" text-anchor="end" fill="#20323a" font-family="Arial, sans-serif" font-size="14">OTC Pain Relief</text>
+<rect x="225" y="165" width="414.9" height="26" rx="3" fill="#247b8b"/>
+<text x="647.9" y="183" fill="#20323a" font-family="Arial, sans-serif" font-size="13">USD 4,150</text>
+<text x="213" y="225" text-anchor="end" fill="#20323a" font-family="Arial, sans-serif" font-size="14">Cold and Allergy</text>
+<rect x="225" y="207" width="377.7" height="26" rx="3" fill="#247b8b"/>
+<text x="610.7" y="225" fill="#20323a" font-family="Arial, sans-serif" font-size="13">USD 3,778</text>
+<text x="213" y="267" text-anchor="end" fill="#20323a" font-family="Arial, sans-serif" font-size="14">Wellness Accessories</text>
+<rect x="225" y="249" width="364.0" height="26" rx="3" fill="#247b8b"/>
+<text x="597.0" y="267" fill="#20323a" font-family="Arial, sans-serif" font-size="13">USD 3,640</text>
+<text x="213" y="309" text-anchor="end" fill="#20323a" font-family="Arial, sans-serif" font-size="14">Digestive Health</text>
+<rect x="225" y="291" width="333.1" height="26" rx="3" fill="#247b8b"/>
+<text x="566.1" y="309" fill="#20323a" font-family="Arial, sans-serif" font-size="13">USD 3,331</text>
+<text x="213" y="351" text-anchor="end" fill="#20323a" font-family="Arial, sans-serif" font-size="14">Personal Care</text>
+<rect x="225" y="333" width="299.8" height="26" rx="3" fill="#247b8b"/>
+<text x="532.8" y="351" fill="#20323a" font-family="Arial, sans-serif" font-size="13">USD 2,999</text>
+<line x1="225" y1="370" x2="860" y2="370" stroke="#d9e2e5"/>
+<text x="225" y="400" fill="#20323a" font-family="Arial, sans-serif" font-size="13">Revenue (USD)</text>
+</svg>

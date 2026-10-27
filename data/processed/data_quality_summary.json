@@ -1,0 +1,8 @@
+{
+  "input_rows": 3003,
+  "rows_with_missing_or_unparsed_values_removed": 0,
+  "duplicate_rows_removed": 0,
+  "rows_with_invalid_sales_values_removed": 0,
+  "revenue_values_recalculated": 0,
+  "clean_rows": 3003
+}

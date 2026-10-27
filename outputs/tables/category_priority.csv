@@ -1,0 +1,8 @@
+category,priority_rank,priority_score,revenue_opportunity_score,customer_reach_score,performance_gap_score,equal_weight_rank
+Personal Care,1,76.7,47.22,92.69,100.0,1
+Cold and Allergy,2,71.66,59.49,100.0,59.54,2
+Vitamins,3,69.04,100.0,96.8,0.0,3
+First Aid,4,55.38,69.96,91.32,0.0,4
+Digestive Health,5,53.4,52.45,79.45,28.63,5
+OTC Pain Relief,6,53.26,65.34,90.41,0.0,6
+Wellness Accessories,7,45.8,57.32,76.26,0.0,7

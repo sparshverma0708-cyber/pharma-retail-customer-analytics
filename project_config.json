@@ -1,0 +1,69 @@
+{
+  "dataset": {
+    "customer_count": 300,
+    "start_date": "2025-01-01",
+    "end_date": "2025-12-31",
+    "random_seed": 42,
+    "currency": "USD"
+  },
+  "generation": {
+    "purchase_profile_probabilities": {
+      "occasional": 0.48,
+      "regular": 0.36,
+      "frequent": 0.16
+    },
+    "purchase_profile_invoice_rates": {
+      "occasional": 2.0,
+      "regular": 5.0,
+      "frequent": 10.0
+    },
+    "maximum_lines_per_invoice": 4,
+    "quantity_values": [1, 2, 3],
+    "quantity_probabilities": [0.76, 0.19, 0.05],
+    "discount_rates": [0.0, 0.05, 0.10, 0.15],
+    "discount_probabilities": [0.72, 0.12, 0.11, 0.05]
+  },
+  "analysis": {
+    "rfm_bucket_count": 5,
+    "priority_weights": {
+      "revenue_opportunity": 0.4,
+      "customer_reach": 0.3,
+      "performance_gap": 0.3
+    },
+    "segments": [
+      {
+        "name": "Champions",
+        "all_conditions": {"recency_score": {"min": 4}, "frequency_score": {"min": 4}, "monetary_score": {"min": 4}}
+      },
+      {
+        "name": "At risk", "role": "at_risk",
+        "all_conditions": {"recency_score": {"max": 2}},
+        "any_conditions": {"frequency_score": {"min": 4}, "monetary_score": {"min": 4}}
+      },
+      {
+        "name": "Loyal customers",
+        "all_conditions": {"recency_score": {"min": 3}, "frequency_score": {"min": 4}}
+      },
+      {
+        "name": "Potential loyalists",
+        "all_conditions": {"recency_score": {"min": 4}, "frequency_score": {"min": 2}}
+      },
+      {"name": "Needs attention", "all_conditions": {}}
+    ]
+  },
+  "paths": {
+    "raw_transactions": "data/raw/synthetic_transactions.csv",
+    "product_catalog": "data/raw/product_catalog.csv",
+    "clean_transactions": "data/processed/cleaned_transactions.csv",
+    "data_quality_summary": "data/processed/data_quality_summary.json",
+    "customer_rfm": "outputs/tables/customer_rfm.csv",
+    "segment_summary": "outputs/tables/segment_summary.csv",
+    "category_performance": "outputs/tables/category_performance.csv",
+    "category_priority": "outputs/tables/category_priority.csv",
+    "figures_directory": "outputs/figures",
+    "monthly_revenue_figure": "outputs/figures/monthly_revenue.svg",
+    "category_revenue_figure": "outputs/figures/category_revenue.svg",
+    "segment_revenue_figure": "outputs/figures/segment_revenue.svg",
+    "report": "reports/findings.md"
+  }
+}

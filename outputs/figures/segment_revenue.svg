@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="332" viewBox="0 0 960 332">
+<rect width="100%" height="100%" fill="white"/>
+<text x="36" y="36" fill="#20323a" font-family="Arial, sans-serif" font-size="22" font-weight="bold">Revenue by customer segment</text>
+<text x="213" y="99" text-anchor="end" fill="#20323a" font-family="Arial, sans-serif" font-size="14">Champions</text>
+<rect x="225" y="81" width="635.0" height="26" rx="3" fill="#247b8b"/>
+<text x="868.0" y="99" fill="#20323a" font-family="Arial, sans-serif" font-size="13">USD 13,164</text>
+<text x="213" y="141" text-anchor="end" fill="#20323a" font-family="Arial, sans-serif" font-size="14">Needs attention</text>
+<rect x="225" y="123" width="280.2" height="26" rx="3" fill="#247b8b"/>
+<text x="513.2" y="141" fill="#20323a" font-family="Arial, sans-serif" font-size="13">USD 5,810</text>
+<text x="213" y="183" text-anchor="end" fill="#20323a" font-family="Arial, sans-serif" font-size="14">Loyal customers</text>
+<rect x="225" y="165" width="232.6" height="26" rx="3" fill="#247b8b"/>
+<text x="465.6" y="183" fill="#20323a" font-family="Arial, sans-serif" font-size="13">USD 4,822</text>
+<text x="213" y="225" text-anchor="end" fill="#20323a" font-family="Arial, sans-serif" font-size="14">At risk</text>
+<rect x="225" y="207" width="135.5" height="26" rx="3" fill="#247b8b"/>
+<text x="368.5" y="225" fill="#20323a" font-family="Arial, sans-serif" font-size="13">USD 2,809</text>
+<text x="213" y="267" text-anchor="end" fill="#20323a" font-family="Arial, sans-serif" font-size="14">Potential loyalists</text>
+<rect x="225" y="249" width="100.7" height="26" rx="3" fill="#247b8b"/>
+<text x="333.7" y="267" fill="#20323a" font-family="Arial, sans-serif" font-size="13">USD 2,088</text>
+<line x1="225" y1="286" x2="860" y2="286" stroke="#d9e2e5"/>
+<text x="225" y="316" fill="#20323a" font-family="Arial, sans-serif" font-size="13">Revenue (USD)</text>
+</svg>

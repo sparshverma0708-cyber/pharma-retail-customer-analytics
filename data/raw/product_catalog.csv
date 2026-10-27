@@ -1,0 +1,27 @@
+product_id,product_name,category,list_price,sampling_weight
+P001,Everyday Pain Relief Tablets,OTC Pain Relief,6.50,1.0
+P002,Topical Relief Gel,OTC Pain Relief,9.25,1.0
+P003,Ibuprofen Generic Pack,OTC Pain Relief,7.80,1.0
+P004,Acetaminophen Generic Pack,OTC Pain Relief,5.90,1.0
+P005,Vitamin C Tablets,Vitamins,8.40,1.0
+P006,Daily Multivitamin,Vitamins,12.50,1.0
+P007,Vitamin D Capsules,Vitamins,10.20,1.0
+P008,Electrolyte Supplement,Vitamins,7.25,1.0
+P009,Adhesive Bandage Pack,First Aid,4.20,1.0
+P010,Antiseptic Wipes,First Aid,5.10,1.0
+P011,Gauze Dressing Pack,First Aid,6.75,1.0
+P012,Digital Thermometer,First Aid,15.00,1.0
+P013,Hand Sanitizer,Personal Care,3.80,1.0
+P014,Moisturizing Lotion,Personal Care,8.90,1.0
+P015,Oral Care Kit,Personal Care,6.20,1.0
+P016,Travel Tissue Pack,Personal Care,2.40,1.0
+P017,Saline Nasal Spray,Cold and Allergy,6.80,1.0
+P018,Allergy Relief Generic Pack,Cold and Allergy,9.60,1.0
+P019,Cough Drops Pack,Cold and Allergy,3.50,1.0
+P020,Reusable Face Mask,Cold and Allergy,4.75,1.0
+P021,Oral Rehydration Salts,Digestive Health,5.25,1.0
+P022,Antacid Generic Pack,Digestive Health,6.10,1.0
+P023,Digestive Enzyme Supplement,Digestive Health,11.40,1.0
+P024,Hot and Cold Pack,Wellness Accessories,10.75,1.0
+P025,Pill Organizer,Wellness Accessories,5.80,1.0
+P026,Reusable Water Bottle,Wellness Accessories,12.00,1.0

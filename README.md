@@ -191,4 +191,3 @@ The project includes a `.gitignore` that excludes virtual environments and keeps
 2. Add public or organization-approved data only after checking its license and removing personal information.
 3. If adding product cost, analyze gross margin separately from revenue.
 4. Consider a dashboard only after the core tables and recommendations are clear.
-
