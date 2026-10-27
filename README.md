@@ -37,7 +37,7 @@ python generate_data.py
 python run_project.py
 ```
 
-The run creates cleaned data, analysis tables, browser-friendly SVG charts, a quality summary, and a findings report. SVG charts need no plotting-library install. All input and output locations are set in `project_config.json`, using paths relative to this project folder. No machine-specific paths are required.
+The run creates cleaned data, analysis tables, browser-friendly SVG charts, a quality summary, a findings report, and an interactive dashboard. Open outputs/dashboard.html in a browser; it works offline and is refreshed whenever the pipeline runs. All input and output locations are set in `project_config.json`, using paths relative to this project folder. No machine-specific paths are required.
 
 ## Project structure
 
@@ -49,6 +49,8 @@ pharma-retail-customer-analytics/
 ├── .gitignore
 ├── generate_data.py
 ├── run_project.py
+├── dashboard/
+│   └── dashboard-template.html
 ├── data/
 │   ├── raw/
 │   │   ├── product_catalog.csv
@@ -65,6 +67,7 @@ pharma-retail-customer-analytics/
 │   ├── visualization.py
 │   └── reporting.py
 ├── outputs/
+│   ├── dashboard.html
 │   ├── figures/                   # Charts created by the analysis
 │   └── tables/                    # CSV summaries created by the analysis
 └── reports/
@@ -138,6 +141,7 @@ After running the project:
 - `outputs/tables/segment_summary.csv`: customer and revenue totals by segment
 - `outputs/tables/category_performance.csv`: category measures and score components
 - `outputs/tables/category_priority.csv`: category ranks, score components, and equal-weight comparison
+- `outputs/dashboard.html`: interactive customer and revenue dashboard; open it locally in a browser
 - `outputs/figures/`: monthly revenue, category revenue, and segment revenue charts
 - `reports/findings.md`: generated summary, recommendations to test, and limitations
 

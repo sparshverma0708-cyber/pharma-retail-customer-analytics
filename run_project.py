@@ -6,6 +6,7 @@ import pandas as pd
 
 from src.config import ensure_project_directories, load_config, project_path
 from src.customer_analysis import build_customer_analysis
+from src.dashboard import generate_dashboard
 from src.data_cleaning import clean_transactions
 from src.product_analysis import build_category_analysis
 from src.reporting import write_findings_report
@@ -46,6 +47,13 @@ def main():
         quality_summary,
         analysis_date.date().isoformat(),
     )
+    dashboard_path = generate_dashboard(
+        transactions,
+        customer_rfm,
+        segment_summary,
+        category_summary,
+        analysis_date.date().isoformat(),
+    )
 
     config = load_config()
     print("Analysis complete.")
@@ -56,6 +64,7 @@ def main():
         f"{transactions['line_revenue'].sum():,.2f}"
     )
     print(f"Findings report saved to: {report_path}")
+    print(f"Dashboard saved to: {dashboard_path}")
 
 
 if __name__ == "__main__":

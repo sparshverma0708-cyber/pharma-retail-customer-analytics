@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Customer segmentation and revenue analysis dashboard using synthetic pharmacy retail transactions.">
+  <title>Pharma Retail | Customer & Revenue Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #192b3a;
+      --muted: #657684;
+      --line: #e2e9ed;
+      --paper: #f4f7f8;
+      --panel: #ffffff;
+      --teal: #187a72;
+      --teal-soft: #e7f3f1;
+      --amber: #c67c3f;
+      --blue: #517d9b;
+      --shadow: 0 8px 22px rgba(25, 43, 58, 0.055);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .shell { max-width: 1440px; margin: 0 auto; padding: 30px clamp(16px, 3vw, 42px) 42px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 30px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 650; letter-spacing: .01em; }
+    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; background: var(--teal); color: white; font-size: 17px; font-weight: 700; }
+    .synthetic-tag { display: inline-flex; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid #cce2de; border-radius: 999px; background: var(--teal-soft); color: #235e59; font-size: 11px; font-weight: 700; letter-spacing: .075em; text-transform: uppercase; }
+    .tag-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); }
+    .hero { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 22px; }
+    .eyebrow { margin: 0 0 8px; color: var(--teal); font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(25px, 3vw, 36px); line-height: 1.16; letter-spacing: -.035em; font-weight: 680; }
+    .subtitle { margin: 9px 0 0; color: var(--muted); font-size: 14px; }
+    .period { text-align: right; color: var(--muted); font-size: 12px; line-height: 1.65; white-space: nowrap; }
+    .period strong { display: block; color: var(--ink); font-size: 13px; font-weight: 650; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; margin: 22px 0; }
+    .metric { min-height: 118px; padding: 18px 19px; background: var(--panel); border: 1px solid var(--line); border-radius: 13px; box-shadow: var(--shadow); }
+    .metric-label { color: var(--muted); font-size: 12px; font-weight: 560; }
+    .metric-value { margin-top: 10px; font-size: clamp(23px, 2.4vw, 30px); font-variant-numeric: tabular-nums; font-weight: 680; letter-spacing: -.035em; }
+    .metric-note { margin-top: 6px; color: var(--muted); font-size: 11px; }
+    .grid-two { display: grid; grid-template-columns: minmax(0, 1.38fr) minmax(330px, .92fr); gap: 15px; margin: 15px 0; }
+    .panel { min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 13px; padding: 20px 21px; box-shadow: var(--shadow); }
+    .panel-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+    h2 { margin: 0; font-size: 15px; font-weight: 680; letter-spacing: -.012em; }
+    .panel-note { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .unit-note { color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .chart-wrap { width: 100%; min-height: 240px; }
+    .chart-wrap svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .axis-label { fill: var(--muted); font-size: 11px; font-family: inherit; }
+    .gridline { stroke: #e8eef0; stroke-width: 1; }
+    .chart-line { fill: none; stroke: var(--teal); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .chart-area { fill: #dff0ed; opacity: .7; }
+    .chart-point { fill: var(--panel); stroke: var(--teal); stroke-width: 2.5; }
+    .segment-list, .priority-list { display: grid; gap: 15px; }
+    .segment-row { display: grid; grid-template-columns: minmax(112px, 1fr) minmax(90px, 1.8fr) auto; gap: 11px; align-items: center; }
+    .segment-name { font-size: 12px; font-weight: 600; }
+    .bar-track { height: 8px; overflow: hidden; border-radius: 10px; background: #edf1f3; }
+    .bar-fill { height: 100%; border-radius: inherit; background: var(--teal); }
+    .segment-value { color: var(--muted); font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .segment-foot { margin: 13px 0 0; color: var(--muted); font-size: 11px; }
+    .priority-item { display: grid; grid-template-columns: 24px minmax(105px, 1.05fr) minmax(75px, 1.6fr) 48px; gap: 10px; align-items: center; }
+    .rank { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .priority-label { min-width: 0; font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+    .priority-track { height: 7px; background: #edf1f3; border-radius: 9px; overflow: hidden; }
+    .priority-fill { height: 100%; background: var(--teal); border-radius: inherit; }
+    .priority-score { text-align: right; font-size: 12px; font-weight: 680; font-variant-numeric: tabular-nums; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { padding: 10px 11px; border-bottom: 1px solid var(--line); color: var(--muted); text-align: left; font-size: 10px; font-weight: 700; letter-spacing: .065em; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 11px; border-bottom: 1px solid #edf1f3; vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .numeric { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .score-cell { font-weight: 700; color: var(--teal); }
+    .rank-change { color: var(--amber); font-size: 10px; }
+    .explorer-controls { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0 12px; }
+    .search-box, .select-box { min-height: 39px; padding: 8px 11px; color: var(--ink); background: white; border: 1px solid #d8e1e6; border-radius: 8px; font: inherit; font-size: 12px; outline-color: #6aa59e; }
+    .search-box { flex: 1 1 190px; }
+    .select-box { flex: 0 1 210px; }
+    .results-note { margin: 0 0 8px; color: var(--muted); font-size: 11px; }
+    .segment-pill { display: inline-block; max-width: 185px; padding: 4px 8px; border-radius: 999px; color: #315d68; background: #edf4f5; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .customer-id { font-weight: 680; letter-spacing: .01em; }
+    .recommendation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; }
+    .recommendation { padding: 14px 15px; border-left: 3px solid var(--teal); background: #f7faf9; border-radius: 0 8px 8px 0; }
+    .recommendation h3 { margin: 0 0 6px; font-size: 12px; font-weight: 680; }
+    .recommendation p { margin: 0; color: #536570; font-size: 11px; line-height: 1.55; }
+    .caveat { margin: 13px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+    footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; color: var(--muted); font-size: 10px; }
+    .empty-state { padding: 22px 10px; color: var(--muted); text-align: center; font-size: 12px; }
+    @media (max-width: 880px) {
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-two { grid-template-columns: 1fr; }
+      .recommendation-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 540px) {
+      .shell { padding: 18px 13px 28px; }
+      .hero { align-items: start; flex-direction: column; gap: 10px; }
+      .period { text-align: left; }
+      .metrics { gap: 9px; }
+      .metric { min-height: 105px; padding: 14px; }
+      .metric-value { font-size: 23px; }
+      .panel { padding: 16px 13px; }
+      .segment-row { grid-template-columns: minmax(100px, 1fr) minmax(54px, 1fr) auto; gap: 7px; }
+      .priority-item { grid-template-columns: 18px minmax(92px, 1.1fr) minmax(42px, 1fr) 38px; gap: 7px; }
+      footer { flex-direction: column; }
+      th, td { padding: 9px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">+</span><span>Pharma retail analytics</span></div>
+      <div class="synthetic-tag"><span class="tag-dot" aria-hidden="true"></span>Synthetic sample</div>
+    </header>
+
+    <section class="hero" aria-labelledby="dashboard-title">
+      <div>
+        <p class="eyebrow">Customer &amp; revenue overview</p>
+        <h1 id="dashboard-title">Know who buys, what sells, and where to look next.</h1>
+        <p class="subtitle">A descriptive view of customer value and category performance.</p>
+      </div>
+      <div class="period"><strong id="period-label"></strong><span id="analysis-date"></span></div>
+    </section>
+
+    <section class="metrics" id="metric-cards" aria-label="Summary metrics"></section>
+
+    <section class="grid-two">
+      <article class="panel" aria-labelledby="monthly-title">
+        <div class="panel-head">
+          <div><h2 id="monthly-title">Monthly revenue</h2><p class="panel-note">After discounts, across the selected analysis period.</p></div>
+          <span class="unit-note" id="monthly-unit"></span>
+        </div>
+        <div class="chart-wrap" id="monthly-chart" aria-live="polite"></div>
+      </article>
+      <article class="panel" aria-labelledby="segment-title">
+        <div class="panel-head">
+          <div><h2 id="segment-title">Customer segments</h2><p class="panel-note">Revenue share by the configured RFM rules.</p></div>
+        </div>
+        <div class="segment-list" id="segment-list"></div>
+        <p class="segment-foot" id="segment-foot"></p>
+      </article>
+    </section>
+
+    <section class="grid-two">
+      <article class="panel" aria-labelledby="priority-title">
+        <div class="panel-head">
+          <div><h2 id="priority-title">Category review priority</h2><p class="panel-note">A relative score to guide investigation, not a forecast.</p></div>
+          <span class="unit-note">Score / 100</span>
+        </div>
+        <div class="priority-list" id="priority-list"></div>
+      </article>
+      <article class="panel" aria-labelledby="recommendation-title">
+        <div class="panel-head">
+          <div><h2 id="recommendation-title">What to investigate</h2><p class="panel-note">Evidence-led ideas to test, not guaranteed outcomes.</p></div>
+        </div>
+        <div class="recommendation-grid" id="recommendations"></div>
+      </article>
+    </section>
+
+    <section class="panel" aria-labelledby="category-table-title" style="margin:15px 0">
+      <div class="panel-head">
+        <div><h2 id="category-table-title">Category performance</h2><p class="panel-note">Compare revenue contribution, customer reach, score components, and rank sensitivity.</p></div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Category</th><th class="numeric">Revenue</th><th class="numeric">Customers</th><th class="numeric">Revenue share</th><th class="numeric">Priority</th><th class="numeric">Equal-weight rank</th></tr></thead>
+          <tbody id="category-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="customer-title">
+      <div class="panel-head">
+        <div><h2 id="customer-title">Customer explorer</h2><p class="panel-note">Search anonymous IDs or filter by the RFM segment assigned in this dataset.</p></div>
+      </div>
+      <div class="explorer-controls">
+        <label class="sr-only" for="customer-search" style="position:absolute;left:-10000px">Search customer ID</label>
+        <input class="search-box" id="customer-search" type="search" placeholder="Search customer ID" autocomplete="off">
+        <label class="sr-only" for="segment-filter" style="position:absolute;left:-10000px">Filter by segment</label>
+        <select class="select-box" id="segment-filter"><option value="">All segments</option></select>
+      </div>
+      <p class="results-note" id="customer-count" aria-live="polite"></p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Customer</th><th>Segment</th><th class="numeric">Recency (days)</th><th class="numeric">Invoices</th><th class="numeric">Revenue</th><th class="numeric">RFM</th></tr></thead>
+          <tbody id="customer-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <span>RFM describes behavior in this period; it does not predict future purchases.</span>
+      <span id="footer-summary"></span>
+    </footer>
+    <p class="caveat">All transactions are synthetic and contain no real customer or health information. Revenue is not profit. Product cost, stock availability, and returns are not included. Do not use transaction patterns to infer medical needs.</p>
+  </main>
+
+  <script>
+    const dashboardData = __DASHBOARD_DATA__;
+    const currency = dashboardData.currency;
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, function (character) {
+        return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[character];
+      });
+    }
+
+    function money(value, digits) {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currency,
+        minimumFractionDigits: digits === undefined ? 0 : digits,
+        maximumFractionDigits: digits === undefined ? 0 : digits
+      }).format(Number(value || 0));
+    }
+
+    function integer(value) {
+      return new Intl.NumberFormat("en-US", {maximumFractionDigits: 0}).format(Number(value || 0));
+    }
+
+    function renderMetrics() {
+      const metrics = [
+        {label:"Revenue after discounts",value:money(dashboardData.summary.revenue),note:"Observed in the synthetic sample"},
+        {label:"Customers",value:integer(dashboardData.summary.customers),note:"Anonymous customer IDs"},
+        {label:"Invoices",value:integer(dashboardData.summary.invoices),note:"Distinct baskets in the period"},
+        {label:"Average invoice value",value:money(dashboardData.summary.average_invoice_value),note:"Revenue divided by invoices"}
+      ];
+      document.getElementById("metric-cards").innerHTML = metrics.map(function (item) {
+        return '<article class="metric"><div class="metric-label">'+escapeHtml(item.label)+'</div><div class="metric-value">'+escapeHtml(item.value)+'</div><div class="metric-note">'+escapeHtml(item.note)+'</div></article>';
+      }).join("");
+      document.getElementById("period-label").textContent = dashboardData.period.start+" — "+dashboardData.period.end;
+      document.getElementById("analysis-date").textContent = "RFM reference date: "+dashboardData.period.analysis_date;
+      document.getElementById("monthly-unit").textContent = currency;
+      document.getElementById("footer-summary").textContent = integer(dashboardData.summary.customers)+" customers · "+integer(dashboardData.summary.invoices)+" invoices";
+    }
+
+    function renderMonthlyChart() {
+      const series = dashboardData.monthly;
+      const width = 820, height = 290, left = 64, right = 18, top = 18, bottom = 52;
+      const plotWidth = width-left-right, plotHeight = height-top-bottom;
+      const maximum = Math.max.apply(null, series.map(function (point) { return Number(point.revenue); })) || 1;
+      const points = series.map(function (point, index) {
+        return {
+          x:left + plotWidth*(index/Math.max(series.length-1,1)),
+          y:top + plotHeight - Number(point.revenue)/maximum*plotHeight,
+          data:point
+        };
+      });
+      const grid = [0,0.25,0.5,0.75,1].map(function (fraction) {
+        const y = top + plotHeight*fraction;
+        return '<line class="gridline" x1="'+left+'" y1="'+y.toFixed(1)+'" x2="'+(width-right)+'" y2="'+y.toFixed(1)+'"></line>'+
+          '<text class="axis-label" x="'+(left-9)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end">'+escapeHtml(integer(maximum*(1-fraction)))+'</text>';
+      }).join("");
+      const linePoints = points.map(function (point) { return point.x.toFixed(1)+","+point.y.toFixed(1); }).join(" ");
+      const areaPoints = left+","+ (top+plotHeight) +" "+linePoints+" "+(width-right)+","+(top+plotHeight);
+      const labels = points.map(function (point,index) {
+        if (index % 2 !== 0 && index !== points.length-1) return "";
+        const monthLabel = new Date(point.data.month+"-02T00:00:00").toLocaleDateString("en-US",{month:"short"});
+        return '<text class="axis-label" x="'+point.x.toFixed(1)+'" y="'+(height-17)+'" text-anchor="middle">'+escapeHtml(monthLabel)+'</text>';
+      }).join("");
+      const circles = points.map(function (point) {
+        return '<circle class="chart-point" cx="'+point.x.toFixed(1)+'" cy="'+point.y.toFixed(1)+'" r="4" tabindex="0" role="img" aria-label="'+escapeHtml(point.data.month+": "+money(point.data.revenue))+'"><title>'+escapeHtml(point.data.month+": "+money(point.data.revenue))+'</title></circle>';
+      }).join("");
+      document.getElementById("monthly-chart").innerHTML =
+        '<svg viewBox="0 0 '+width+' '+height+'" role="img" aria-labelledby="revenue-svg-title revenue-svg-desc">'+
+        '<title id="revenue-svg-title">Monthly revenue</title><desc id="revenue-svg-desc">Revenue after discounts by month, in '+escapeHtml(currency)+'.</desc>'+
+        grid+'<polygon class="chart-area" points="'+areaPoints+'"></polygon><polyline class="chart-line" points="'+linePoints+'"></polyline>'+circles+labels+
+        '<text class="axis-label" x="'+left+'" y="'+(height-1)+'">Revenue ('+escapeHtml(currency)+')</text></svg>';
+    }
+
+    function renderSegments() {
+      const rows = dashboardData.segments.slice().sort(function (a,b) { return Number(b.total_revenue)-Number(a.total_revenue); });
+      document.getElementById("segment-list").innerHTML = rows.map(function (row) {
+        return '<div class="segment-row"><span class="segment-name">'+escapeHtml(row.segment)+'</span><div class="bar-track" role="img" aria-label="'+escapeHtml(row.segment+": "+row.revenue_share_pct+" percent of revenue")+'"><div class="bar-fill" style="width:'+Math.min(100,Number(row.revenue_share_pct)).toFixed(1)+'%"></div></div><span class="segment-value">'+escapeHtml(row.revenue_share_pct.toFixed(1))+'% · '+escapeHtml(integer(row.customer_count))+'</span></div>';
+      }).join("");
+      document.getElementById("segment-foot").textContent = "Bars show revenue share; numbers show share and customer count.";
+    }
+
+    function renderPriorities() {
+      const rows = dashboardData.categories.slice().sort(function (a,b) { return Number(a.priority_rank)-Number(b.priority_rank); });
+      document.getElementById("priority-list").innerHTML = rows.map(function (row) {
+        return '<div class="priority-item"><span class="rank">#'+escapeHtml(row.priority_rank)+'</span><span class="priority-label">'+escapeHtml(row.category)+'</span><div class="priority-track" role="img" aria-label="'+escapeHtml(row.category+": review score "+row.priority_score+" out of 100")+'"><div class="priority-fill" style="width:'+Math.max(0,Math.min(100,Number(row.priority_score))).toFixed(1)+'%"></div></div><span class="priority-score">'+escapeHtml(Number(row.priority_score).toFixed(1))+'</span></div>';
+      }).join("");
+    }
+
+    function renderRecommendations() {
+      const byPriority = dashboardData.categories.slice().sort(function (a,b) { return Number(a.priority_rank)-Number(b.priority_rank); });
+      const byRevenue = dashboardData.categories.slice().sort(function (a,b) { return Number(b.revenue)-Number(a.revenue); });
+      const atRisk = dashboardData.segments.find(function (row) { return row.role === "at_risk"; });
+      const items = [
+        {title:"Review "+byPriority[0].category,body:"It ranks first on the configured score. Check its reach and revenue-per-customer gap, then test one measurable merchandising or availability change."},
+        {title:"Protect "+byRevenue[0].category,body:byRevenue[0].revenue_share_pct.toFixed(1)+"% of sample revenue comes from this category. Monitor availability and category revenue."}
+      ];
+      if (atRisk && Number(atRisk.customer_count) > 0) {
+        items.push({title:"Test a win-back",body:integer(atRisk.customer_count)+" customers match the configured at-risk rule. Use a holdout and compare repeat-purchase rate and incremental revenue."});
+      } else {
+        items.push({title:"Measure before scaling",body:"Use a small controlled test and compare outcomes with a holdout before expanding any customer or category action."});
+      }
+      document.getElementById("recommendations").innerHTML = items.map(function (item) {
+        return '<article class="recommendation"><h3>'+escapeHtml(item.title)+'</h3><p>'+escapeHtml(item.body)+'</p></article>';
+      }).join("");
+    }
+
+    function renderCategoryTable() {
+      const rows = dashboardData.categories.slice().sort(function (a,b) { return Number(a.priority_rank)-Number(b.priority_rank); });
+      document.getElementById("category-rows").innerHTML = rows.map(function (row) {
+        const rankNote = Number(row.priority_rank) === Number(row.equal_weight_rank) ? "" : '<div class="rank-change">equal-weight rank '+escapeHtml(row.equal_weight_rank)+'</div>';
+        return '<tr><td>'+escapeHtml(row.category)+'</td><td class="numeric">'+escapeHtml(money(row.revenue))+'</td><td class="numeric">'+escapeHtml(integer(row.customer_count))+'</td><td class="numeric">'+escapeHtml(Number(row.revenue_share_pct).toFixed(1))+'%</td><td class="numeric score-cell">'+escapeHtml(Number(row.priority_score).toFixed(1))+'</td><td class="numeric">'+escapeHtml(row.equal_weight_rank)+rankNote+'</td></tr>';
+      }).join("");
+    }
+
+    function renderCustomerTable() {
+      const query = document.getElementById("customer-search").value.trim().toLowerCase();
+      const selectedSegment = document.getElementById("segment-filter").value;
+      const matches = dashboardData.customers.filter(function (customer) {
+        const matchesQuery = !query || customer.customer_id.toLowerCase().includes(query);
+        const matchesSegment = !selectedSegment || customer.segment === selectedSegment;
+        return matchesQuery && matchesSegment;
+      });
+      const rows = matches.slice(0,100);
+      document.getElementById("customer-count").textContent = "Showing "+integer(rows.length)+" of "+integer(matches.length)+" matching customers, sorted by period revenue.";
+      document.getElementById("customer-rows").innerHTML = rows.length ? rows.map(function (row) {
+        return '<tr><td class="customer-id">'+escapeHtml(row.customer_id)+'</td><td><span class="segment-pill">'+escapeHtml(row.segment)+'</span></td><td class="numeric">'+escapeHtml(integer(row.recency_days))+'</td><td class="numeric">'+escapeHtml(integer(row.frequency))+'</td><td class="numeric">'+escapeHtml(money(row.monetary_value,2))+'</td><td class="numeric">'+escapeHtml(row.rfm_code)+'</td></tr>';
+      }).join("") : '<tr><td colspan="6" class="empty-state">No customers match these filters.</td></tr>';
+    }
+
+    function initializeDashboard() {
+      renderMetrics();
+      renderMonthlyChart();
+      renderSegments();
+      renderPriorities();
+      renderRecommendations();
+      renderCategoryTable();
+      const filter = document.getElementById("segment-filter");
+      dashboardData.segments.slice().sort(function (a,b) { return a.segment.localeCompare(b.segment); }).forEach(function (segment) {
+        const option = document.createElement("option");
+        option.value = segment.segment;
+        option.textContent = segment.segment;
+        filter.appendChild(option);
+      });
+      document.getElementById("customer-search").addEventListener("input",renderCustomerTable);
+      filter.addEventListener("change",renderCustomerTable);
+      renderCustomerTable();
+    }
+    initializeDashboard();
+  </script>
+</body>
+</html>

@@ -13,15 +13,33 @@
       "frequent": 0.16
     },
     "purchase_profile_invoice_rates": {
-      "occasional": 2.0,
-      "regular": 5.0,
-      "frequent": 10.0
+      "occasional": 2,
+      "regular": 5,
+      "frequent": 10
     },
     "maximum_lines_per_invoice": 4,
-    "quantity_values": [1, 2, 3],
-    "quantity_probabilities": [0.76, 0.19, 0.05],
-    "discount_rates": [0.0, 0.05, 0.10, 0.15],
-    "discount_probabilities": [0.72, 0.12, 0.11, 0.05]
+    "quantity_values": [
+      1,
+      2,
+      3
+    ],
+    "quantity_probabilities": [
+      0.76,
+      0.19,
+      0.05
+    ],
+    "discount_rates": [
+      0,
+      0.05,
+      0.1,
+      0.15
+    ],
+    "discount_probabilities": [
+      0.72,
+      0.12,
+      0.11,
+      0.05
+    ]
   },
   "analysis": {
     "rfm_bucket_count": 5,
@@ -33,22 +51,61 @@
     "segments": [
       {
         "name": "Champions",
-        "all_conditions": {"recency_score": {"min": 4}, "frequency_score": {"min": 4}, "monetary_score": {"min": 4}}
+        "all_conditions": {
+          "recency_score": {
+            "min": 4
+          },
+          "frequency_score": {
+            "min": 4
+          },
+          "monetary_score": {
+            "min": 4
+          }
+        }
       },
       {
-        "name": "At risk", "role": "at_risk",
-        "all_conditions": {"recency_score": {"max": 2}},
-        "any_conditions": {"frequency_score": {"min": 4}, "monetary_score": {"min": 4}}
+        "name": "At risk",
+        "role": "at_risk",
+        "all_conditions": {
+          "recency_score": {
+            "max": 2
+          }
+        },
+        "any_conditions": {
+          "frequency_score": {
+            "min": 4
+          },
+          "monetary_score": {
+            "min": 4
+          }
+        }
       },
       {
         "name": "Loyal customers",
-        "all_conditions": {"recency_score": {"min": 3}, "frequency_score": {"min": 4}}
+        "all_conditions": {
+          "recency_score": {
+            "min": 3
+          },
+          "frequency_score": {
+            "min": 4
+          }
+        }
       },
       {
         "name": "Potential loyalists",
-        "all_conditions": {"recency_score": {"min": 4}, "frequency_score": {"min": 2}}
+        "all_conditions": {
+          "recency_score": {
+            "min": 4
+          },
+          "frequency_score": {
+            "min": 2
+          }
+        }
       },
-      {"name": "Needs attention", "all_conditions": {}}
+      {
+        "name": "Needs attention",
+        "all_conditions": {}
+      }
     ]
   },
   "paths": {
@@ -64,6 +121,8 @@
     "monthly_revenue_figure": "outputs/figures/monthly_revenue.svg",
     "category_revenue_figure": "outputs/figures/category_revenue.svg",
     "segment_revenue_figure": "outputs/figures/segment_revenue.svg",
-    "report": "reports/findings.md"
+    "report": "reports/findings.md",
+    "dashboard_template": "dashboard/dashboard-template.html",
+    "dashboard_html": "outputs/dashboard.html"
   }
 }

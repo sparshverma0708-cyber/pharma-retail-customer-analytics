@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Customer segmentation and revenue analysis dashboard using synthetic pharmacy retail transactions.">
+  <title>Pharma Retail | Customer & Revenue Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #192b3a;
+      --muted: #657684;
+      --line: #e2e9ed;
+      --paper: #f4f7f8;
+      --panel: #ffffff;
+      --teal: #187a72;
+      --teal-soft: #e7f3f1;
+      --amber: #c67c3f;
+      --blue: #517d9b;
+      --shadow: 0 8px 22px rgba(25, 43, 58, 0.055);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .shell { max-width: 1440px; margin: 0 auto; padding: 30px clamp(16px, 3vw, 42px) 42px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 30px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 650; letter-spacing: .01em; }
+    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; background: var(--teal); color: white; font-size: 17px; font-weight: 700; }
+    .synthetic-tag { display: inline-flex; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid #cce2de; border-radius: 999px; background: var(--teal-soft); color: #235e59; font-size: 11px; font-weight: 700; letter-spacing: .075em; text-transform: uppercase; }
+    .tag-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); }
+    .hero { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 22px; }
+    .eyebrow { margin: 0 0 8px; color: var(--teal); font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(25px, 3vw, 36px); line-height: 1.16; letter-spacing: -.035em; font-weight: 680; }
+    .subtitle { margin: 9px 0 0; color: var(--muted); font-size: 14px; }
+    .period { text-align: right; color: var(--muted); font-size: 12px; line-height: 1.65; white-space: nowrap; }
+    .period strong { display: block; color: var(--ink); font-size: 13px; font-weight: 650; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; margin: 22px 0; }
+    .metric { min-height: 118px; padding: 18px 19px; background: var(--panel); border: 1px solid var(--line); border-radius: 13px; box-shadow: var(--shadow); }
+    .metric-label { color: var(--muted); font-size: 12px; font-weight: 560; }
+    .metric-value { margin-top: 10px; font-size: clamp(23px, 2.4vw, 30px); font-variant-numeric: tabular-nums; font-weight: 680; letter-spacing: -.035em; }
+    .metric-note { margin-top: 6px; color: var(--muted); font-size: 11px; }
+    .grid-two { display: grid; grid-template-columns: minmax(0, 1.38fr) minmax(330px, .92fr); gap: 15px; margin: 15px 0; }
+    .panel { min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 13px; padding: 20px 21px; box-shadow: var(--shadow); }
+    .panel-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+    h2 { margin: 0; font-size: 15px; font-weight: 680; letter-spacing: -.012em; }
+    .panel-note { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .unit-note { color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .chart-wrap { width: 100%; min-height: 240px; }
+    .chart-wrap svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .axis-label { fill: var(--muted); font-size: 11px; font-family: inherit; }
+    .gridline { stroke: #e8eef0; stroke-width: 1; }
+    .chart-line { fill: none; stroke: var(--teal); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .chart-area { fill: #dff0ed; opacity: .7; }
+    .chart-point { fill: var(--panel); stroke: var(--teal); stroke-width: 2.5; }
+    .segment-list, .priority-list { display: grid; gap: 15px; }
+    .segment-row { display: grid; grid-template-columns: minmax(112px, 1fr) minmax(90px, 1.8fr) auto; gap: 11px; align-items: center; }
+    .segment-name { font-size: 12px; font-weight: 600; }
+    .bar-track { height: 8px; overflow: hidden; border-radius: 10px; background: #edf1f3; }
+    .bar-fill { height: 100%; border-radius: inherit; background: var(--teal); }
+    .segment-value { color: var(--muted); font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .segment-foot { margin: 13px 0 0; color: var(--muted); font-size: 11px; }
+    .priority-item { display: grid; grid-template-columns: 24px minmax(105px, 1.05fr) minmax(75px, 1.6fr) 48px; gap: 10px; align-items: center; }
+    .rank { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .priority-label { min-width: 0; font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+    .priority-track { height: 7px; background: #edf1f3; border-radius: 9px; overflow: hidden; }
+    .priority-fill { height: 100%; background: var(--teal); border-radius: inherit; }
+    .priority-score { text-align: right; font-size: 12px; font-weight: 680; font-variant-numeric: tabular-nums; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { padding: 10px 11px; border-bottom: 1px solid var(--line); color: var(--muted); text-align: left; font-size: 10px; font-weight: 700; letter-spacing: .065em; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 11px; border-bottom: 1px solid #edf1f3; vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .numeric { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .score-cell { font-weight: 700; color: var(--teal); }
+    .rank-change { color: var(--amber); font-size: 10px; }
+    .explorer-controls { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0 12px; }
+    .search-box, .select-box { min-height: 39px; padding: 8px 11px; color: var(--ink); background: white; border: 1px solid #d8e1e6; border-radius: 8px; font: inherit; font-size: 12px; outline-color: #6aa59e; }
+    .search-box { flex: 1 1 190px; }
+    .select-box { flex: 0 1 210px; }
+    .results-note { margin: 0 0 8px; color: var(--muted); font-size: 11px; }
+    .segment-pill { display: inline-block; max-width: 185px; padding: 4px 8px; border-radius: 999px; color: #315d68; background: #edf4f5; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .customer-id { font-weight: 680; letter-spacing: .01em; }
+    .recommendation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; }
+    .recommendation { padding: 14px 15px; border-left: 3px solid var(--teal); background: #f7faf9; border-radius: 0 8px 8px 0; }
+    .recommendation h3 { margin: 0 0 6px; font-size: 12px; font-weight: 680; }
+    .recommendation p { margin: 0; color: #536570; font-size: 11px; line-height: 1.55; }
+    .caveat { margin: 13px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+    footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; color: var(--muted); font-size: 10px; }
+    .empty-state { padding: 22px 10px; color: var(--muted); text-align: center; font-size: 12px; }
+    @media (max-width: 880px) {
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-two { grid-template-columns: 1fr; }
+      .recommendation-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 540px) {
+      .shell { padding: 18px 13px 28px; }
+      .hero { align-items: start; flex-direction: column; gap: 10px; }
+      .period { text-align: left; }
+      .metrics { gap: 9px; }
+      .metric { min-height: 105px; padding: 14px; }
+      .metric-value { font-size: 23px; }
+      .panel { padding: 16px 13px; }
+      .segment-row { grid-template-columns: minmax(100px, 1fr) minmax(54px, 1fr) auto; gap: 7px; }
+      .priority-item { grid-template-columns: 18px minmax(92px, 1.1fr) minmax(42px, 1fr) 38px; gap: 7px; }
+      footer { flex-direction: column; }
+      th, td { padding: 9px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">+</span><span>Pharma retail analytics</span></div>
+      <div class="synthetic-tag"><span class="tag-dot" aria-hidden="true"></span>Synthetic sample</div>
+    </header>
+
+    <section class="hero" aria-labelledby="dashboard-title">
+      <div>
+        <p class="eyebrow">Customer &amp; revenue overview</p>
+        <h1 id="dashboard-title">Know who buys, what sells, and where to look next.</h1>
+        <p class="subtitle">A descriptive view of customer value and category performance.</p>
+      </div>
+      <div class="period"><strong id="period-label"></strong><span id="analysis-date"></span></div>
+    </section>
+
+    <section class="metrics" id="metric-cards" aria-label="Summary metrics"></section>
+
+    <section class="grid-two">
+      <article class="panel" aria-labelledby="monthly-title">
+        <div class="panel-head">
+          <div><h2 id="monthly-title">Monthly revenue</h2><p class="panel-note">After discounts, across the selected analysis period.</p></div>
+          <span class="unit-note" id="monthly-unit"></span>
+        </div>
+        <div class="chart-wrap" id="monthly-chart" aria-live="polite"></div>
+      </article>
+      <article class="panel" aria-labelledby="segment-title">
+        <div class="panel-head">
+          <div><h2 id="segment-title">Customer segments</h2><p class="panel-note">Revenue share by the configured RFM rules.</p></div>
+        </div>
+        <div class="segment-list" id="segment-list"></div>
+        <p class="segment-foot" id="segment-foot"></p>
+      </article>
+    </section>
+
+    <section class="grid-two">
+      <article class="panel" aria-labelledby="priority-title">
+        <div class="panel-head">
+          <div><h2 id="priority-title">Category review priority</h2><p class="panel-note">A relative score to guide investigation, not a forecast.</p></div>
+          <span class="unit-note">Score / 100</span>
+        </div>
+        <div class="priority-list" id="priority-list"></div>
+      </article>
+      <article class="panel" aria-labelledby="recommendation-title">
+        <div class="panel-head">
+          <div><h2 id="recommendation-title">What to investigate</h2><p class="panel-note">Evidence-led ideas to test, not guaranteed outcomes.</p></div>
+        </div>
+        <div class="recommendation-grid" id="recommendations"></div>
+      </article>
+    </section>
+
+    <section class="panel" aria-labelledby="category-table-title" style="margin:15px 0">
+      <div class="panel-head">
+        <div><h2 id="category-table-title">Category performance</h2><p class="panel-note">Compare revenue contribution, customer reach, score components, and rank sensitivity.</p></div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Category</th><th class="numeric">Revenue</th><th class="numeric">Customers</th><th class="numeric">Revenue share</th><th class="numeric">Priority</th><th class="numeric">Equal-weight rank</th></tr></thead>
+          <tbody id="category-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="customer-title">
+      <div class="panel-head">
+        <div><h2 id="customer-title">Customer explorer</h2><p class="panel-note">Search anonymous IDs or filter by the RFM segment assigned in this dataset.</p></div>
+      </div>
+      <div class="explorer-controls">
+        <label class="sr-only" for="customer-search" style="position:absolute;left:-10000px">Search customer ID</label>
+        <input class="search-box" id="customer-search" type="search" placeholder="Search customer ID" autocomplete="off">
+        <label class="sr-only" for="segment-filter" style="position:absolute;left:-10000px">Filter by segment</label>
+        <select class="select-box" id="segment-filter"><option value="">All segments</option></select>
+      </div>
+      <p class="results-note" id="customer-count" aria-live="polite"></p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Customer</th><th>Segment</th><th class="numeric">Recency (days)</th><th class="numeric">Invoices</th><th class="numeric">Revenue</th><th class="numeric">RFM</th></tr></thead>
+          <tbody id="customer-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <span>RFM describes behavior in this period; it does not predict future purchases.</span>
+      <span id="footer-summary"></span>
+    </footer>
+    <p class="caveat">All transactions are synthetic and contain no real customer or health information. Revenue is not profit. Product cost, stock availability, and returns are not included. Do not use transaction patterns to infer medical needs.</p>
+  </main>
+
+  <script>
+    const dashboardData = {"currency":"USD","period":{"start":"2025-01-01","end":"2025-12-31","analysis_date":"2026-01-01"},"summary":{"revenue":28691.98,"customers":300,"invoices":1210,"average_invoice_value":23.71},"monthly":[{"month":"2025-01","revenue":2437.84},{"month":"2025-02","revenue":2422.19},{"month":"2025-03","revenue":2701.05},{"month":"2025-04","revenue":2168.29},{"month":"2025-05","revenue":2750.38},{"month":"2025-06","revenue":2049.75},{"month":"2025-07","revenue":2469.54},{"month":"2025-08","revenue":2567.49},{"month":"2025-09","revenue":2436.39},{"month":"2025-10","revenue":1970.99},{"month":"2025-11","revenue":2178.12},{"month":"2025-12","revenue":2539.95}],"segments":[{"segment":"At risk","customer_count":24,"total_revenue":2809.07,"revenue_share_pct":9.79,"average_recency_days":139.62,"average_frequency":4.54,"average_monetary_value":117.04,"role":"at_risk"},{"segment":"Champions","customer_count":65,"total_revenue":13163.95,"revenue_share_pct":45.88,"average_recency_days":22.42,"average_frequency":8.35,"average_monetary_value":202.52,"role":""},{"segment":"Loyal customers","customer_count":37,"total_revenue":4821.53,"revenue_share_pct":16.8,"average_recency_days":59.27,"average_frequency":5.81,"average_monetary_value":130.31,"role":""},{"segment":"Needs attention","customer_count":143,"total_revenue":5809.59,"revenue_share_pct":20.25,"average_recency_days":163.72,"average_frequency":1.8,"average_monetary_value":40.63,"role":""},{"segment":"Potential loyalists","customer_count":31,"total_revenue":2087.84,"revenue_share_pct":7.28,"average_recency_days":22.65,"average_frequency":2.74,"average_monetary_value":67.35,"role":""}],"categories":[{"category":"Vitamins","revenue":6350.99,"customer_count":212,"revenue_share_pct":22.14,"revenue_opportunity_score":100.0,"customer_reach_score":96.8,"performance_gap_score":0.0,"priority_score":69.04,"priority_rank":3,"equal_weight_rank":3},{"category":"First Aid","revenue":4442.91,"customer_count":200,"revenue_share_pct":15.48,"revenue_opportunity_score":69.96,"customer_reach_score":91.32,"performance_gap_score":0.0,"priority_score":55.38,"priority_rank":4,"equal_weight_rank":4},{"category":"OTC Pain Relief","revenue":4149.99,"customer_count":198,"revenue_share_pct":14.46,"revenue_opportunity_score":65.34,"customer_reach_score":90.41,"performance_gap_score":0.0,"priority_score":53.26,"priority_rank":6,"equal_weight_rank":6},{"category":"Cold and Allergy","revenue":3777.92,"customer_count":219,"revenue_share_pct":13.17,"revenue_opportunity_score":59.49,"customer_reach_score":100.0,"performance_gap_score":59.54,"priority_score":71.66,"priority_rank":2,"equal_weight_rank":2},{"category":"Wellness Accessories","revenue":3640.29,"customer_count":167,"revenue_share_pct":12.69,"revenue_opportunity_score":57.32,"customer_reach_score":76.26,"performance_gap_score":0.0,"priority_score":45.8,"priority_rank":7,"equal_weight_rank":7},{"category":"Digestive Health","revenue":3331.05,"customer_count":174,"revenue_share_pct":11.61,"revenue_opportunity_score":52.45,"customer_reach_score":79.45,"performance_gap_score":28.63,"priority_score":53.4,"priority_rank":5,"equal_weight_rank":5},{"category":"Personal Care","revenue":2998.83,"customer_count":203,"revenue_share_pct":10.45,"revenue_opportunity_score":47.22,"customer_reach_score":92.69,"performance_gap_score":100.0,"priority_score":76.7,"priority_rank":1,"equal_weight_rank":1}],"customers":[{"customer_id":"C00219","segment":"Champions","recency_days":1,"frequency":18,"monetary_value":470.02,"rfm_code":"555"},{"customer_id":"C00191","segment":"Champions","recency_days":12,"frequency":19,"monetary_value":431.42,"rfm_code":"555"},{"customer_id":"C00246","segment":"Champions","recency_days":5,"frequency":14,"monetary_value":378.44,"rfm_code":"555"},{"customer_id":"C00202","segment":"Champions","recency_days":38,"frequency":12,"monetary_value":371.57,"rfm_code":"455"},{"customer_id":"C00198","segment":"Champions","recency_days":23,"frequency":15,"monetary_value":366.54,"rfm_code":"555"},{"customer_id":"C00061","segment":"Champions","recency_days":32,"frequency":13,"monetary_value":351.48,"rfm_code":"455"},{"customer_id":"C00162","segment":"Champions","recency_days":50,"frequency":13,"monetary_value":342.13,"rfm_code":"455"},{"customer_id":"C00295","segment":"Champions","recency_days":5,"frequency":12,"monetary_value":333.72,"rfm_code":"555"},{"customer_id":"C00279","segment":"Loyal customers","recency_days":88,"frequency":11,"monetary_value":306.6,"rfm_code":"355"},{"customer_id":"C00132","segment":"Champions","recency_days":12,"frequency":13,"monetary_value":298.54,"rfm_code":"555"},{"customer_id":"C00265","segment":"Champions","recency_days":37,"frequency":11,"monetary_value":294.34,"rfm_code":"455"},{"customer_id":"C00143","segment":"Champions","recency_days":15,"frequency":13,"monetary_value":291.79,"rfm_code":"555"},{"customer_id":"C00116","segment":"Champions","recency_days":23,"frequency":13,"monetary_value":282.3,"rfm_code":"555"},{"customer_id":"C00296","segment":"Champions","recency_days":52,"frequency":14,"monetary_value":254.77,"rfm_code":"455"},{"customer_id":"C00003","segment":"Champions","recency_days":15,"frequency":13,"monetary_value":252.53,"rfm_code":"555"},{"customer_id":"C00073","segment":"Loyal customers","recency_days":83,"frequency":8,"monetary_value":250.48,"rfm_code":"355"},{"customer_id":"C00182","segment":"Champions","recency_days":34,"frequency":10,"monetary_value":249.72,"rfm_code":"455"},{"customer_id":"C00023","segment":"Champions","recency_days":3,"frequency":11,"monetary_value":246.52,"rfm_code":"555"},{"customer_id":"C00226","segment":"Champions","recency_days":14,"frequency":11,"monetary_value":245.96,"rfm_code":"555"},{"customer_id":"C00012","segment":"Loyal customers","recency_days":57,"frequency":8,"monetary_value":240.32,"rfm_code":"355"},{"customer_id":"C00224","segment":"Champions","recency_days":45,"frequency":13,"monetary_value":239.53,"rfm_code":"455"},{"customer_id":"C00137","segment":"Champions","recency_days":31,"frequency":7,"monetary_value":233.38,"rfm_code":"455"},{"customer_id":"C00245","segment":"Champions","recency_days":1,"frequency":9,"monetary_value":226.18,"rfm_code":"555"},{"customer_id":"C00170","segment":"Champions","recency_days":6,"frequency":8,"monetary_value":225.9,"rfm_code":"555"},{"customer_id":"C00159","segment":"Champions","recency_days":30,"frequency":7,"monetary_value":223.44,"rfm_code":"455"},{"customer_id":"C00215","segment":"Loyal customers","recency_days":103,"frequency":5,"monetary_value":220.03,"rfm_code":"345"},{"customer_id":"C00006","segment":"Loyal customers","recency_days":89,"frequency":9,"monetary_value":216.17,"rfm_code":"355"},{"customer_id":"C00110","segment":"Champions","recency_days":39,"frequency":10,"monetary_value":214.93,"rfm_code":"455"},{"customer_id":"C00229","segment":"Champions","recency_days":32,"frequency":8,"monetary_value":209.39,"rfm_code":"455"},{"customer_id":"C00032","segment":"Champions","recency_days":5,"frequency":8,"monetary_value":207.17,"rfm_code":"555"},{"customer_id":"C00285","segment":"Champions","recency_days":28,"frequency":9,"monetary_value":202.47,"rfm_code":"455"},{"customer_id":"C00156","segment":"At risk","recency_days":191,"frequency":6,"monetary_value":200.96,"rfm_code":"145"},{"customer_id":"C00031","segment":"Champions","recency_days":3,"frequency":9,"monetary_value":199.45,"rfm_code":"555"},{"customer_id":"C00030","segment":"Champions","recency_days":1,"frequency":6,"monetary_value":197.81,"rfm_code":"545"},{"customer_id":"C00236","segment":"Loyal customers","recency_days":57,"frequency":7,"monetary_value":197.65,"rfm_code":"355"},{"customer_id":"C00046","segment":"Loyal customers","recency_days":64,"frequency":8,"monetary_value":197.53,"rfm_code":"355"},{"customer_id":"C00017","segment":"Champions","recency_days":34,"frequency":8,"monetary_value":190.86,"rfm_code":"455"},{"customer_id":"C00104","segment":"Loyal customers","recency_days":56,"frequency":9,"monetary_value":187.13,"rfm_code":"355"},{"customer_id":"C00235","segment":"Champions","recency_days":37,"frequency":7,"monetary_value":186.73,"rfm_code":"455"},{"customer_id":"C00185","segment":"Champions","recency_days":17,"frequency":8,"monetary_value":185.39,"rfm_code":"555"},{"customer_id":"C00007","segment":"Champions","recency_days":6,"frequency":9,"monetary_value":181.47,"rfm_code":"555"},{"customer_id":"C00252","segment":"Champions","recency_days":15,"frequency":11,"monetary_value":180.76,"rfm_code":"555"},{"customer_id":"C00233","segment":"Champions","recency_days":11,"frequency":8,"monetary_value":180.71,"rfm_code":"555"},{"customer_id":"C00212","segment":"At risk","recency_days":134,"frequency":7,"monetary_value":167.53,"rfm_code":"255"},{"customer_id":"C00024","segment":"Champions","recency_days":24,"frequency":5,"monetary_value":167.29,"rfm_code":"545"},{"customer_id":"C00090","segment":"Champions","recency_days":50,"frequency":6,"monetary_value":166.29,"rfm_code":"445"},{"customer_id":"C00167","segment":"Champions","recency_days":2,"frequency":5,"monetary_value":166.26,"rfm_code":"545"},{"customer_id":"C00013","segment":"Loyal customers","recency_days":85,"frequency":7,"monetary_value":165.02,"rfm_code":"355"},{"customer_id":"C00008","segment":"Champions","recency_days":6,"frequency":7,"monetary_value":164.34,"rfm_code":"555"},{"customer_id":"C00291","segment":"Champions","recency_days":53,"frequency":6,"monetary_value":163.42,"rfm_code":"455"},{"customer_id":"C00126","segment":"Champions","recency_days":45,"frequency":9,"monetary_value":162.96,"rfm_code":"455"},{"customer_id":"C00105","segment":"Champions","recency_days":1,"frequency":6,"monetary_value":162.86,"rfm_code":"545"},{"customer_id":"C00056","segment":"Champions","recency_days":53,"frequency":5,"monetary_value":162.3,"rfm_code":"445"},{"customer_id":"C00172","segment":"Loyal customers","recency_days":54,"frequency":6,"monetary_value":162.14,"rfm_code":"355"},{"customer_id":"C00053","segment":"At risk","recency_days":111,"frequency":6,"monetary_value":161.34,"rfm_code":"245"},{"customer_id":"C00238","segment":"Champions","recency_days":19,"frequency":5,"monetary_value":158.82,"rfm_code":"545"},{"customer_id":"C00001","segment":"At risk","recency_days":115,"frequency":6,"monetary_value":154.51,"rfm_code":"245"},{"customer_id":"C00297","segment":"Champions","recency_days":43,"frequency":7,"monetary_value":153.83,"rfm_code":"455"},{"customer_id":"C00203","segment":"Champions","recency_days":50,"frequency":7,"monetary_value":152.94,"rfm_code":"455"},{"customer_id":"C00253","segment":"At risk","recency_days":131,"frequency":4,"monetary_value":149.68,"rfm_code":"245"},{"customer_id":"C00293","segment":"Loyal customers","recency_days":63,"frequency":7,"monetary_value":148.86,"rfm_code":"354"},{"customer_id":"C00181","segment":"Champions","recency_days":9,"frequency":8,"monetary_value":145.87,"rfm_code":"554"},{"customer_id":"C00020","segment":"At risk","recency_days":171,"frequency":7,"monetary_value":145.72,"rfm_code":"254"},{"customer_id":"C00179","segment":"Loyal customers","recency_days":83,"frequency":8,"monetary_value":144.99,"rfm_code":"354"},{"customer_id":"C00178","segment":"Loyal customers","recency_days":84,"frequency":5,"monetary_value":143.44,"rfm_code":"344"},{"customer_id":"C00100","segment":"Champions","recency_days":24,"frequency":6,"monetary_value":141.48,"rfm_code":"444"},{"customer_id":"C00087","segment":"Champions","recency_days":28,"frequency":4,"monetary_value":141.08,"rfm_code":"444"},{"customer_id":"C00049","segment":"Champions","recency_days":20,"frequency":5,"monetary_value":140.85,"rfm_code":"544"},{"customer_id":"C00092","segment":"Loyal customers","recency_days":61,"frequency":6,"monetary_value":137.45,"rfm_code":"344"},{"customer_id":"C00274","segment":"Loyal customers","recency_days":75,"frequency":6,"monetary_value":137.12,"rfm_code":"354"},{"customer_id":"C00112","segment":"Loyal customers","recency_days":66,"frequency":4,"monetary_value":134.98,"rfm_code":"344"},{"customer_id":"C00257","segment":"Champions","recency_days":13,"frequency":8,"monetary_value":134.58,"rfm_code":"554"},{"customer_id":"C00055","segment":"Champions","recency_days":9,"frequency":5,"monetary_value":129.45,"rfm_code":"544"},{"customer_id":"C00118","segment":"At risk","recency_days":119,"frequency":4,"monetary_value":128.06,"rfm_code":"244"},{"customer_id":"C00064","segment":"Loyal customers","recency_days":64,"frequency":8,"monetary_value":127.8,"rfm_code":"354"},{"customer_id":"C00165","segment":"Potential loyalists","recency_days":2,"frequency":3,"monetary_value":127.0,"rfm_code":"534"},{"customer_id":"C00144","segment":"At risk","recency_days":140,"frequency":3,"monetary_value":126.27,"rfm_code":"234"},{"customer_id":"C00101","segment":"Loyal customers","recency_days":58,"frequency":7,"monetary_value":126.05,"rfm_code":"354"},{"customer_id":"C00298","segment":"Loyal customers","recency_days":91,"frequency":5,"monetary_value":125.72,"rfm_code":"344"},{"customer_id":"C00280","segment":"Champions","recency_days":24,"frequency":6,"monetary_value":124.57,"rfm_code":"454"},{"customer_id":"C00176","segment":"Champions","recency_days":22,"frequency":4,"monetary_value":124.19,"rfm_code":"544"},{"customer_id":"C00148","segment":"Champions","recency_days":33,"frequency":5,"monetary_value":123.06,"rfm_code":"444"},{"customer_id":"C00021","segment":"Loyal customers","recency_days":57,"frequency":7,"monetary_value":122.99,"rfm_code":"354"},{"customer_id":"C00210","segment":"Champions","recency_days":7,"frequency":5,"monetary_value":122.05,"rfm_code":"544"},{"customer_id":"C00281","segment":"Needs attention","recency_days":56,"frequency":3,"monetary_value":121.66,"rfm_code":"334"},{"customer_id":"C00072","segment":"Needs attention","recency_days":92,"frequency":3,"monetary_value":121.56,"rfm_code":"334"},{"customer_id":"C00154","segment":"At risk","recency_days":111,"frequency":5,"monetary_value":120.3,"rfm_code":"244"},{"customer_id":"C00174","segment":"At risk","recency_days":104,"frequency":7,"monetary_value":118.86,"rfm_code":"254"},{"customer_id":"C00133","segment":"Champions","recency_days":10,"frequency":5,"monetary_value":117.94,"rfm_code":"544"},{"customer_id":"C00208","segment":"At risk","recency_days":115,"frequency":5,"monetary_value":115.25,"rfm_code":"244"},{"customer_id":"C00180","segment":"At risk","recency_days":107,"frequency":5,"monetary_value":113.54,"rfm_code":"244"},{"customer_id":"C00289","segment":"Champions","recency_days":23,"frequency":4,"monetary_value":113.52,"rfm_code":"544"},{"customer_id":"C00066","segment":"Champions","recency_days":2,"frequency":5,"monetary_value":112.45,"rfm_code":"544"},{"customer_id":"C00004","segment":"Champions","recency_days":10,"frequency":5,"monetary_value":112.43,"rfm_code":"544"},{"customer_id":"C00120","segment":"Champions","recency_days":48,"frequency":5,"monetary_value":112.39,"rfm_code":"444"},{"customer_id":"C00263","segment":"Champions","recency_days":5,"frequency":4,"monetary_value":111.84,"rfm_code":"544"},{"customer_id":"C00088","segment":"Champions","recency_days":36,"frequency":5,"monetary_value":111.36,"rfm_code":"444"},{"customer_id":"C00199","segment":"Champions","recency_days":34,"frequency":5,"monetary_value":111.32,"rfm_code":"444"},{"customer_id":"C00128","segment":"Needs attention","recency_days":100,"frequency":3,"monetary_value":110.66,"rfm_code":"334"},{"customer_id":"C00097","segment":"At risk","recency_days":130,"frequency":4,"monetary_value":110.55,"rfm_code":"244"},{"customer_id":"C00260","segment":"Champions","recency_days":41,"frequency":6,"monetary_value":109.42,"rfm_code":"454"},{"customer_id":"C00231","segment":"At risk","recency_days":104,"frequency":2,"monetary_value":109.38,"rfm_code":"224"},{"customer_id":"C00069","segment":"Needs attention","recency_days":94,"frequency":3,"monetary_value":104.09,"rfm_code":"334"},{"customer_id":"C00234","segment":"Loyal customers","recency_days":75,"frequency":4,"monetary_value":102.75,"rfm_code":"344"},{"customer_id":"C00117","segment":"Potential loyalists","recency_days":8,"frequency":3,"monetary_value":102.66,"rfm_code":"534"},{"customer_id":"C00216","segment":"Potential loyalists","recency_days":18,"frequency":3,"monetary_value":102.39,"rfm_code":"534"},{"customer_id":"C00050","segment":"At risk","recency_days":160,"frequency":4,"monetary_value":102.02,"rfm_code":"234"},{"customer_id":"C00169","segment":"At risk","recency_days":201,"frequency":4,"monetary_value":101.49,"rfm_code":"144"},{"customer_id":"C00262","segment":"At risk","recency_days":138,"frequency":3,"monetary_value":101.12,"rfm_code":"234"},{"customer_id":"C00079","segment":"At risk","recency_days":178,"frequency":4,"monetary_value":98.48,"rfm_code":"244"},{"customer_id":"C00272","segment":"At risk","recency_days":193,"frequency":3,"monetary_value":98.1,"rfm_code":"134"},{"customer_id":"C00042","segment":"Potential loyalists","recency_days":18,"frequency":4,"monetary_value":96.8,"rfm_code":"534"},{"customer_id":"C00045","segment":"Potential loyalists","recency_days":26,"frequency":3,"monetary_value":96.79,"rfm_code":"434"},{"customer_id":"C00027","segment":"Needs attention","recency_days":84,"frequency":4,"monetary_value":95.52,"rfm_code":"334"},{"customer_id":"C00197","segment":"Champions","recency_days":1,"frequency":5,"monetary_value":95.43,"rfm_code":"544"},{"customer_id":"C00096","segment":"At risk","recency_days":124,"frequency":3,"monetary_value":94.15,"rfm_code":"234"},{"customer_id":"C00278","segment":"Potential loyalists","recency_days":22,"frequency":3,"monetary_value":91.68,"rfm_code":"534"},{"customer_id":"C00122","segment":"Loyal customers","recency_days":69,"frequency":5,"monetary_value":91.67,"rfm_code":"344"},{"customer_id":"C00114","segment":"At risk","recency_days":179,"frequency":4,"monetary_value":90.88,"rfm_code":"244"},{"customer_id":"C00158","segment":"Loyal customers","recency_days":83,"frequency":4,"monetary_value":90.86,"rfm_code":"344"},{"customer_id":"C00230","segment":"Loyal customers","recency_days":29,"frequency":4,"monetary_value":90.84,"rfm_code":"443"},{"customer_id":"C00211","segment":"Needs attention","recency_days":183,"frequency":3,"monetary_value":90.54,"rfm_code":"133"},{"customer_id":"C00019","segment":"Potential loyalists","recency_days":43,"frequency":4,"monetary_value":89.67,"rfm_code":"433"},{"customer_id":"C00102","segment":"Loyal customers","recency_days":29,"frequency":6,"monetary_value":88.95,"rfm_code":"443"},{"customer_id":"C00119","segment":"Potential loyalists","recency_days":11,"frequency":3,"monetary_value":88.82,"rfm_code":"533"},{"customer_id":"C00145","segment":"Potential loyalists","recency_days":32,"frequency":3,"monetary_value":88.65,"rfm_code":"433"},{"customer_id":"C00025","segment":"Needs attention","recency_days":125,"frequency":3,"monetary_value":88.2,"rfm_code":"233"},{"customer_id":"C00195","segment":"Needs attention","recency_days":171,"frequency":3,"monetary_value":87.97,"rfm_code":"233"},{"customer_id":"C00125","segment":"At risk","recency_days":116,"frequency":4,"monetary_value":85.52,"rfm_code":"243"},{"customer_id":"C00188","segment":"Needs attention","recency_days":65,"frequency":3,"monetary_value":84.79,"rfm_code":"333"},{"customer_id":"C00038","segment":"Needs attention","recency_days":62,"frequency":3,"monetary_value":84.25,"rfm_code":"333"},{"customer_id":"C00043","segment":"Loyal customers","recency_days":52,"frequency":6,"monetary_value":83.34,"rfm_code":"443"},{"customer_id":"C00183","segment":"Potential loyalists","recency_days":21,"frequency":3,"monetary_value":83.27,"rfm_code":"533"},{"customer_id":"C00163","segment":"Potential loyalists","recency_days":14,"frequency":3,"monetary_value":82.55,"rfm_code":"533"},{"customer_id":"C00273","segment":"Loyal customers","recency_days":53,"frequency":4,"monetary_value":81.89,"rfm_code":"443"},{"customer_id":"C00139","segment":"Potential loyalists","recency_days":48,"frequency":3,"monetary_value":81.76,"rfm_code":"433"},{"customer_id":"C00124","segment":"Needs attention","recency_days":135,"frequency":3,"monetary_value":81.56,"rfm_code":"233"},{"customer_id":"C00059","segment":"Needs attention","recency_days":217,"frequency":2,"monetary_value":80.17,"rfm_code":"123"},{"customer_id":"C00241","segment":"Needs attention","recency_days":68,"frequency":3,"monetary_value":79.28,"rfm_code":"333"},{"customer_id":"C00136","segment":"Needs attention","recency_days":91,"frequency":3,"monetary_value":77.96,"rfm_code":"333"},{"customer_id":"C00228","segment":"Needs attention","recency_days":258,"frequency":3,"monetary_value":77.22,"rfm_code":"133"},{"customer_id":"C00214","segment":"Loyal customers","recency_days":39,"frequency":4,"monetary_value":77.07,"rfm_code":"443"},{"customer_id":"C00138","segment":"Potential loyalists","recency_days":2,"frequency":3,"monetary_value":76.18,"rfm_code":"533"},{"customer_id":"C00057","segment":"Needs attention","recency_days":71,"frequency":3,"monetary_value":75.35,"rfm_code":"333"},{"customer_id":"C00040","segment":"Needs attention","recency_days":149,"frequency":3,"monetary_value":75.22,"rfm_code":"233"},{"customer_id":"C00152","segment":"Loyal customers","recency_days":12,"frequency":4,"monetary_value":75.12,"rfm_code":"543"},{"customer_id":"C00244","segment":"Loyal customers","recency_days":32,"frequency":4,"monetary_value":74.47,"rfm_code":"443"},{"customer_id":"C00249","segment":"Needs attention","recency_days":85,"frequency":3,"monetary_value":74.4,"rfm_code":"333"},{"customer_id":"C00142","segment":"Loyal customers","recency_days":15,"frequency":4,"monetary_value":74.39,"rfm_code":"543"},{"customer_id":"C00237","segment":"Needs attention","recency_days":89,"frequency":3,"monetary_value":74.3,"rfm_code":"333"},{"customer_id":"C00076","segment":"Loyal customers","recency_days":49,"frequency":4,"monetary_value":73.9,"rfm_code":"443"},{"customer_id":"C00275","segment":"Needs attention","recency_days":191,"frequency":3,"monetary_value":73.43,"rfm_code":"133"},{"customer_id":"C00251","segment":"Loyal customers","recency_days":67,"frequency":4,"monetary_value":73.15,"rfm_code":"343"},{"customer_id":"C00131","segment":"Needs attention","recency_days":178,"frequency":2,"monetary_value":72.96,"rfm_code":"223"},{"customer_id":"C00204","segment":"Needs attention","recency_days":203,"frequency":2,"monetary_value":72.67,"rfm_code":"123"},{"customer_id":"C00080","segment":"At risk","recency_days":123,"frequency":5,"monetary_value":71.1,"rfm_code":"243"},{"customer_id":"C00016","segment":"Potential loyalists","recency_days":28,"frequency":4,"monetary_value":70.84,"rfm_code":"433"},{"customer_id":"C00014","segment":"Needs attention","recency_days":128,"frequency":3,"monetary_value":70.44,"rfm_code":"233"},{"customer_id":"C00239","segment":"Potential loyalists","recency_days":9,"frequency":3,"monetary_value":70.44,"rfm_code":"533"},{"customer_id":"C00033","segment":"Needs attention","recency_days":90,"frequency":2,"monetary_value":69.9,"rfm_code":"323"},{"customer_id":"C00184","segment":"Needs attention","recency_days":60,"frequency":2,"monetary_value":68.15,"rfm_code":"323"},{"customer_id":"C00192","segment":"Needs attention","recency_days":211,"frequency":2,"monetary_value":67.78,"rfm_code":"123"},{"customer_id":"C00044","segment":"Needs attention","recency_days":80,"frequency":2,"monetary_value":67.68,"rfm_code":"323"},{"customer_id":"C00271","segment":"Needs attention","recency_days":284,"frequency":1,"monetary_value":67.25,"rfm_code":"113"},{"customer_id":"C00286","segment":"Loyal customers","recency_days":43,"frequency":4,"monetary_value":65.92,"rfm_code":"443"},{"customer_id":"C00083","segment":"Potential loyalists","recency_days":39,"frequency":3,"monetary_value":65.25,"rfm_code":"433"},{"customer_id":"C00015","segment":"Potential loyalists","recency_days":15,"frequency":3,"monetary_value":64.92,"rfm_code":"533"},{"customer_id":"C00194","segment":"Loyal customers","recency_days":33,"frequency":5,"monetary_value":63.61,"rfm_code":"443"},{"customer_id":"C00098","segment":"Needs attention","recency_days":70,"frequency":3,"monetary_value":63.12,"rfm_code":"333"},{"customer_id":"C00011","segment":"Potential loyalists","recency_days":54,"frequency":2,"monetary_value":62.56,"rfm_code":"423"},{"customer_id":"C00220","segment":"Needs attention","recency_days":143,"frequency":2,"monetary_value":62.34,"rfm_code":"223"},{"customer_id":"C00190","segment":"Needs attention","recency_days":130,"frequency":2,"monetary_value":62.18,"rfm_code":"223"},{"customer_id":"C00282","segment":"Potential loyalists","recency_days":2,"frequency":3,"monetary_value":62.03,"rfm_code":"533"},{"customer_id":"C00201","segment":"Loyal customers","recency_days":72,"frequency":4,"monetary_value":61.91,"rfm_code":"343"},{"customer_id":"C00153","segment":"Needs attention","recency_days":96,"frequency":2,"monetary_value":61.7,"rfm_code":"323"},{"customer_id":"C00022","segment":"Needs attention","recency_days":72,"frequency":4,"monetary_value":60.68,"rfm_code":"333"},{"customer_id":"C00026","segment":"Needs attention","recency_days":98,"frequency":1,"monetary_value":59.89,"rfm_code":"313"},{"customer_id":"C00186","segment":"Potential loyalists","recency_days":7,"frequency":2,"monetary_value":59.59,"rfm_code":"523"},{"customer_id":"C00121","segment":"Loyal customers","recency_days":3,"frequency":4,"monetary_value":59.22,"rfm_code":"543"},{"customer_id":"C00166","segment":"Potential loyalists","recency_days":50,"frequency":2,"monetary_value":58.2,"rfm_code":"423"},{"customer_id":"C00151","segment":"Needs attention","recency_days":253,"frequency":2,"monetary_value":58.11,"rfm_code":"122"},{"customer_id":"C00270","segment":"Needs attention","recency_days":118,"frequency":2,"monetary_value":57.16,"rfm_code":"222"},{"customer_id":"C00175","segment":"Needs attention","recency_days":79,"frequency":3,"monetary_value":57.12,"rfm_code":"332"},{"customer_id":"C00086","segment":"Potential loyalists","recency_days":46,"frequency":2,"monetary_value":56.1,"rfm_code":"422"},{"customer_id":"C00232","segment":"Needs attention","recency_days":143,"frequency":3,"monetary_value":55.87,"rfm_code":"232"},{"customer_id":"C00261","segment":"Needs attention","recency_days":254,"frequency":2,"monetary_value":55.55,"rfm_code":"122"},{"customer_id":"C00254","segment":"Needs attention","recency_days":206,"frequency":2,"monetary_value":54.62,"rfm_code":"122"},{"customer_id":"C00067","segment":"Needs attention","recency_days":309,"frequency":1,"monetary_value":54.17,"rfm_code":"112"},{"customer_id":"C00084","segment":"Needs attention","recency_days":125,"frequency":1,"monetary_value":53.72,"rfm_code":"212"},{"customer_id":"C00222","segment":"Needs attention","recency_days":112,"frequency":3,"monetary_value":53.2,"rfm_code":"232"},{"customer_id":"C00266","segment":"Needs attention","recency_days":261,"frequency":1,"monetary_value":51.89,"rfm_code":"112"},{"customer_id":"C00068","segment":"Needs attention","recency_days":174,"frequency":3,"monetary_value":51.57,"rfm_code":"232"},{"customer_id":"C00269","segment":"Potential loyalists","recency_days":27,"frequency":3,"monetary_value":51.17,"rfm_code":"432"},{"customer_id":"C00052","segment":"Potential loyalists","recency_days":38,"frequency":2,"monetary_value":51.1,"rfm_code":"422"},{"customer_id":"C00058","segment":"Needs attention","recency_days":64,"frequency":3,"monetary_value":50.58,"rfm_code":"332"},{"customer_id":"C00164","segment":"Needs attention","recency_days":125,"frequency":2,"monetary_value":50.13,"rfm_code":"222"},{"customer_id":"C00247","segment":"Needs attention","recency_days":111,"frequency":2,"monetary_value":50.1,"rfm_code":"222"},{"customer_id":"C00074","segment":"Needs attention","recency_days":243,"frequency":2,"monetary_value":47.17,"rfm_code":"122"},{"customer_id":"C00150","segment":"Needs attention","recency_days":139,"frequency":1,"monetary_value":47.14,"rfm_code":"212"},{"customer_id":"C00063","segment":"Needs attention","recency_days":264,"frequency":2,"monetary_value":46.95,"rfm_code":"122"},{"customer_id":"C00248","segment":"Needs attention","recency_days":28,"frequency":1,"monetary_value":45.08,"rfm_code":"412"},{"customer_id":"C00267","segment":"Needs attention","recency_days":236,"frequency":2,"monetary_value":44.84,"rfm_code":"122"},{"customer_id":"C00160","segment":"At risk","recency_days":156,"frequency":4,"monetary_value":44.26,"rfm_code":"242"},{"customer_id":"C00108","segment":"Potential loyalists","recency_days":4,"frequency":2,"monetary_value":44.13,"rfm_code":"522"},{"customer_id":"C00141","segment":"Needs attention","recency_days":218,"frequency":3,"monetary_value":43.92,"rfm_code":"132"},{"customer_id":"C00111","segment":"Needs attention","recency_days":271,"frequency":3,"monetary_value":43.29,"rfm_code":"132"},{"customer_id":"C00206","segment":"Needs attention","recency_days":97,"frequency":2,"monetary_value":43.27,"rfm_code":"322"},{"customer_id":"C00207","segment":"Potential loyalists","recency_days":23,"frequency":3,"monetary_value":42.77,"rfm_code":"532"},{"customer_id":"C00200","segment":"Potential loyalists","recency_days":12,"frequency":2,"monetary_value":42.53,"rfm_code":"522"},{"customer_id":"C00193","segment":"Needs attention","recency_days":338,"frequency":1,"monetary_value":42.19,"rfm_code":"112"},{"customer_id":"C00284","segment":"Needs attention","recency_days":213,"frequency":2,"monetary_value":41.85,"rfm_code":"132"},{"customer_id":"C00242","segment":"Needs attention","recency_days":175,"frequency":2,"monetary_value":41.05,"rfm_code":"222"},{"customer_id":"C00081","segment":"Needs attention","recency_days":246,"frequency":2,"monetary_value":41.0,"rfm_code":"122"},{"customer_id":"C00155","segment":"Needs attention","recency_days":157,"frequency":2,"monetary_value":40.66,"rfm_code":"222"},{"customer_id":"C00060","segment":"Needs attention","recency_days":239,"frequency":3,"monetary_value":40.09,"rfm_code":"132"},{"customer_id":"C00039","segment":"Needs attention","recency_days":282,"frequency":2,"monetary_value":39.74,"rfm_code":"122"},{"customer_id":"C00085","segment":"Needs attention","recency_days":278,"frequency":1,"monetary_value":39.5,"rfm_code":"112"},{"customer_id":"C00054","segment":"Needs attention","recency_days":148,"frequency":2,"monetary_value":39.13,"rfm_code":"222"},{"customer_id":"C00250","segment":"Needs attention","recency_days":329,"frequency":2,"monetary_value":38.92,"rfm_code":"122"},{"customer_id":"C00217","segment":"Needs attention","recency_days":258,"frequency":1,"monetary_value":37.85,"rfm_code":"112"},{"customer_id":"C00036","segment":"Needs attention","recency_days":137,"frequency":2,"monetary_value":36.61,"rfm_code":"222"},{"customer_id":"C00277","segment":"Needs attention","recency_days":55,"frequency":3,"monetary_value":36.2,"rfm_code":"332"},{"customer_id":"C00140","segment":"Needs attention","recency_days":150,"frequency":1,"monetary_value":35.69,"rfm_code":"212"},{"customer_id":"C00168","segment":"Needs attention","recency_days":228,"frequency":3,"monetary_value":35.46,"rfm_code":"132"},{"customer_id":"C00256","segment":"Needs attention","recency_days":334,"frequency":2,"monetary_value":35.2,"rfm_code":"122"},{"customer_id":"C00259","segment":"Needs attention","recency_days":43,"frequency":1,"monetary_value":34.9,"rfm_code":"412"},{"customer_id":"C00171","segment":"Needs attention","recency_days":20,"frequency":1,"monetary_value":34.26,"rfm_code":"512"},{"customer_id":"C00189","segment":"Needs attention","recency_days":57,"frequency":2,"monetary_value":33.87,"rfm_code":"322"},{"customer_id":"C00028","segment":"Needs attention","recency_days":107,"frequency":1,"monetary_value":32.75,"rfm_code":"212"},{"customer_id":"C00103","segment":"Needs attention","recency_days":104,"frequency":2,"monetary_value":32.75,"rfm_code":"222"},{"customer_id":"C00071","segment":"Needs attention","recency_days":55,"frequency":1,"monetary_value":32.2,"rfm_code":"312"},{"customer_id":"C00292","segment":"Needs attention","recency_days":241,"frequency":3,"monetary_value":32.16,"rfm_code":"132"},{"customer_id":"C00106","segment":"Needs attention","recency_days":182,"frequency":2,"monetary_value":31.3,"rfm_code":"122"},{"customer_id":"C00113","segment":"Needs attention","recency_days":186,"frequency":1,"monetary_value":31.17,"rfm_code":"112"},{"customer_id":"C00196","segment":"Needs attention","recency_days":234,"frequency":2,"monetary_value":30.5,"rfm_code":"122"},{"customer_id":"C00243","segment":"Needs attention","recency_days":308,"frequency":1,"monetary_value":30.47,"rfm_code":"112"},{"customer_id":"C00062","segment":"Needs attention","recency_days":198,"frequency":1,"monetary_value":30.03,"rfm_code":"112"},{"customer_id":"C00147","segment":"Needs attention","recency_days":160,"frequency":2,"monetary_value":29.8,"rfm_code":"222"},{"customer_id":"C00107","segment":"Potential loyalists","recency_days":34,"frequency":2,"monetary_value":29.5,"rfm_code":"422"},{"customer_id":"C00218","segment":"Needs attention","recency_days":44,"frequency":1,"monetary_value":29.34,"rfm_code":"412"},{"customer_id":"C00048","segment":"Needs attention","recency_days":179,"frequency":2,"monetary_value":28.55,"rfm_code":"221"},{"customer_id":"C00283","segment":"Needs attention","recency_days":31,"frequency":1,"monetary_value":28.5,"rfm_code":"411"},{"customer_id":"C00037","segment":"Needs attention","recency_days":238,"frequency":1,"monetary_value":28.41,"rfm_code":"111"},{"customer_id":"C00034","segment":"Needs attention","recency_days":57,"frequency":2,"monetary_value":28.16,"rfm_code":"321"},{"customer_id":"C00299","segment":"Needs attention","recency_days":97,"frequency":2,"monetary_value":28.15,"rfm_code":"331"},{"customer_id":"C00051","segment":"Needs attention","recency_days":339,"frequency":1,"monetary_value":27.57,"rfm_code":"111"},{"customer_id":"C00078","segment":"Needs attention","recency_days":67,"frequency":2,"monetary_value":26.67,"rfm_code":"321"},{"customer_id":"C00135","segment":"Needs attention","recency_days":120,"frequency":2,"monetary_value":26.36,"rfm_code":"221"},{"customer_id":"C00209","segment":"Needs attention","recency_days":15,"frequency":1,"monetary_value":26.36,"rfm_code":"511"},{"customer_id":"C00294","segment":"Needs attention","recency_days":230,"frequency":1,"monetary_value":26.31,"rfm_code":"121"},{"customer_id":"C00161","segment":"Needs attention","recency_days":350,"frequency":1,"monetary_value":25.8,"rfm_code":"111"},{"customer_id":"C00089","segment":"Potential loyalists","recency_days":8,"frequency":2,"monetary_value":25.28,"rfm_code":"521"},{"customer_id":"C00205","segment":"Needs attention","recency_days":169,"frequency":1,"monetary_value":24.16,"rfm_code":"211"},{"customer_id":"C00093","segment":"Needs attention","recency_days":96,"frequency":2,"monetary_value":23.64,"rfm_code":"321"},{"customer_id":"C00005","segment":"Needs attention","recency_days":180,"frequency":1,"monetary_value":23.6,"rfm_code":"211"},{"customer_id":"C00018","segment":"Needs attention","recency_days":323,"frequency":1,"monetary_value":23.25,"rfm_code":"111"},{"customer_id":"C00240","segment":"Needs attention","recency_days":71,"frequency":2,"monetary_value":22.86,"rfm_code":"321"},{"customer_id":"C00065","segment":"Needs attention","recency_days":107,"frequency":2,"monetary_value":22.2,"rfm_code":"221"},{"customer_id":"C00149","segment":"Needs attention","recency_days":65,"frequency":2,"monetary_value":22.07,"rfm_code":"321"},{"customer_id":"C00123","segment":"Needs attention","recency_days":164,"frequency":2,"monetary_value":21.3,"rfm_code":"221"},{"customer_id":"C00127","segment":"Needs attention","recency_days":275,"frequency":1,"monetary_value":20.65,"rfm_code":"111"},{"customer_id":"C00213","segment":"Needs attention","recency_days":361,"frequency":1,"monetary_value":20.43,"rfm_code":"111"},{"customer_id":"C00187","segment":"Needs attention","recency_days":279,"frequency":1,"monetary_value":20.4,"rfm_code":"111"},{"customer_id":"C00268","segment":"Needs attention","recency_days":64,"frequency":1,"monetary_value":20.3,"rfm_code":"311"},{"customer_id":"C00264","segment":"Needs attention","recency_days":25,"frequency":1,"monetary_value":19.2,"rfm_code":"411"},{"customer_id":"C00225","segment":"Needs attention","recency_days":38,"frequency":1,"monetary_value":18.29,"rfm_code":"411"},{"customer_id":"C00095","segment":"Needs attention","recency_days":279,"frequency":1,"monetary_value":18.27,"rfm_code":"111"},{"customer_id":"C00146","segment":"Needs attention","recency_days":45,"frequency":1,"monetary_value":18.2,"rfm_code":"411"},{"customer_id":"C00029","segment":"Needs attention","recency_days":281,"frequency":1,"monetary_value":16.95,"rfm_code":"111"},{"customer_id":"C00070","segment":"Needs attention","recency_days":153,"frequency":1,"monetary_value":16.95,"rfm_code":"211"},{"customer_id":"C00091","segment":"Needs attention","recency_days":183,"frequency":2,"monetary_value":16.28,"rfm_code":"121"},{"customer_id":"C00047","segment":"Needs attention","recency_days":27,"frequency":1,"monetary_value":16.06,"rfm_code":"411"},{"customer_id":"C00109","segment":"Potential loyalists","recency_days":32,"frequency":2,"monetary_value":16.01,"rfm_code":"421"},{"customer_id":"C00290","segment":"Needs attention","recency_days":156,"frequency":1,"monetary_value":15.45,"rfm_code":"221"},{"customer_id":"C00009","segment":"Needs attention","recency_days":185,"frequency":1,"monetary_value":15.3,"rfm_code":"111"},{"customer_id":"C00094","segment":"Needs attention","recency_days":88,"frequency":1,"monetary_value":15.3,"rfm_code":"311"},{"customer_id":"C00041","segment":"Needs attention","recency_days":50,"frequency":1,"monetary_value":15.0,"rfm_code":"411"},{"customer_id":"C00300","segment":"Needs attention","recency_days":134,"frequency":1,"monetary_value":13.65,"rfm_code":"221"},{"customer_id":"C00077","segment":"Needs attention","recency_days":280,"frequency":2,"monetary_value":13.05,"rfm_code":"121"},{"customer_id":"C00157","segment":"Needs attention","recency_days":173,"frequency":1,"monetary_value":13.0,"rfm_code":"211"},{"customer_id":"C00130","segment":"Needs attention","recency_days":358,"frequency":1,"monetary_value":12.62,"rfm_code":"111"},{"customer_id":"C00276","segment":"Needs attention","recency_days":178,"frequency":1,"monetary_value":11.75,"rfm_code":"211"},{"customer_id":"C00035","segment":"Needs attention","recency_days":210,"frequency":2,"monetary_value":10.92,"rfm_code":"121"},{"customer_id":"C00227","segment":"Needs attention","recency_days":255,"frequency":1,"monetary_value":9.5,"rfm_code":"111"},{"customer_id":"C00082","segment":"Needs attention","recency_days":295,"frequency":1,"monetary_value":8.45,"rfm_code":"111"},{"customer_id":"C00288","segment":"Needs attention","recency_days":211,"frequency":1,"monetary_value":8.45,"rfm_code":"111"},{"customer_id":"C00075","segment":"Needs attention","recency_days":341,"frequency":1,"monetary_value":7.86,"rfm_code":"111"},{"customer_id":"C00002","segment":"Needs attention","recency_days":79,"frequency":1,"monetary_value":7.8,"rfm_code":"311"},{"customer_id":"C00177","segment":"Potential loyalists","recency_days":9,"frequency":2,"monetary_value":7.2,"rfm_code":"521"},{"customer_id":"C00173","segment":"Needs attention","recency_days":57,"frequency":1,"monetary_value":6.89,"rfm_code":"311"},{"customer_id":"C00010","segment":"Needs attention","recency_days":309,"frequency":1,"monetary_value":6.8,"rfm_code":"111"},{"customer_id":"C00134","segment":"Needs attention","recency_days":275,"frequency":1,"monetary_value":6.5,"rfm_code":"111"},{"customer_id":"C00221","segment":"Needs attention","recency_days":159,"frequency":1,"monetary_value":6.5,"rfm_code":"211"},{"customer_id":"C00255","segment":"Needs attention","recency_days":38,"frequency":1,"monetary_value":6.1,"rfm_code":"411"},{"customer_id":"C00258","segment":"Needs attention","recency_days":206,"frequency":1,"monetary_value":4.84,"rfm_code":"111"},{"customer_id":"C00287","segment":"Needs attention","recency_days":276,"frequency":1,"monetary_value":4.75,"rfm_code":"111"},{"customer_id":"C00115","segment":"Needs attention","recency_days":129,"frequency":1,"monetary_value":4.75,"rfm_code":"211"},{"customer_id":"C00099","segment":"Needs attention","recency_days":266,"frequency":1,"monetary_value":4.2,"rfm_code":"111"},{"customer_id":"C00129","segment":"Needs attention","recency_days":109,"frequency":1,"monetary_value":3.8,"rfm_code":"211"},{"customer_id":"C00223","segment":"Needs attention","recency_days":122,"frequency":1,"monetary_value":3.5,"rfm_code":"211"}]};
+    const currency = dashboardData.currency;
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, function (character) {
+        return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[character];
+      });
+    }
+
+    function money(value, digits) {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currency,
+        minimumFractionDigits: digits === undefined ? 0 : digits,
+        maximumFractionDigits: digits === undefined ? 0 : digits
+      }).format(Number(value || 0));
+    }
+
+    function integer(value) {
+      return new Intl.NumberFormat("en-US", {maximumFractionDigits: 0}).format(Number(value || 0));
+    }
+
+    function renderMetrics() {
+      const metrics = [
+        {label:"Revenue after discounts",value:money(dashboardData.summary.revenue),note:"Observed in the synthetic sample"},
+        {label:"Customers",value:integer(dashboardData.summary.customers),note:"Anonymous customer IDs"},
+        {label:"Invoices",value:integer(dashboardData.summary.invoices),note:"Distinct baskets in the period"},
+        {label:"Average invoice value",value:money(dashboardData.summary.average_invoice_value),note:"Revenue divided by invoices"}
+      ];
+      document.getElementById("metric-cards").innerHTML = metrics.map(function (item) {
+        return '<article class="metric"><div class="metric-label">'+escapeHtml(item.label)+'</div><div class="metric-value">'+escapeHtml(item.value)+'</div><div class="metric-note">'+escapeHtml(item.note)+'</div></article>';
+      }).join("");
+      document.getElementById("period-label").textContent = dashboardData.period.start+" — "+dashboardData.period.end;
+      document.getElementById("analysis-date").textContent = "RFM reference date: "+dashboardData.period.analysis_date;
+      document.getElementById("monthly-unit").textContent = currency;
+      document.getElementById("footer-summary").textContent = integer(dashboardData.summary.customers)+" customers · "+integer(dashboardData.summary.invoices)+" invoices";
+    }
+
+    function renderMonthlyChart() {
+      const series = dashboardData.monthly;
+      const width = 820, height = 290, left = 64, right = 18, top = 18, bottom = 52;
+      const plotWidth = width-left-right, plotHeight = height-top-bottom;
+      const maximum = Math.max.apply(null, series.map(function (point) { return Number(point.revenue); })) || 1;
+      const points = series.map(function (point, index) {
+        return {
+          x:left + plotWidth*(index/Math.max(series.length-1,1)),
+          y:top + plotHeight - Number(point.revenue)/maximum*plotHeight,
+          data:point
+        };
+      });
+      const grid = [0,0.25,0.5,0.75,1].map(function (fraction) {
+        const y = top + plotHeight*fraction;
+        return '<line class="gridline" x1="'+left+'" y1="'+y.toFixed(1)+'" x2="'+(width-right)+'" y2="'+y.toFixed(1)+'"></line>'+
+          '<text class="axis-label" x="'+(left-9)+'" y="'+(y+4).toFixed(1)+'" text-anchor="end">'+escapeHtml(integer(maximum*(1-fraction)))+'</text>';
+      }).join("");
+      const linePoints = points.map(function (point) { return point.x.toFixed(1)+","+point.y.toFixed(1); }).join(" ");
+      const areaPoints = left+","+ (top+plotHeight) +" "+linePoints+" "+(width-right)+","+(top+plotHeight);
+      const labels = points.map(function (point,index) {
+        if (index % 2 !== 0 && index !== points.length-1) return "";
+        const monthLabel = new Date(point.data.month+"-02T00:00:00").toLocaleDateString("en-US",{month:"short"});
+        return '<text class="axis-label" x="'+point.x.toFixed(1)+'" y="'+(height-17)+'" text-anchor="middle">'+escapeHtml(monthLabel)+'</text>';
+      }).join("");
+      const circles = points.map(function (point) {
+        return '<circle class="chart-point" cx="'+point.x.toFixed(1)+'" cy="'+point.y.toFixed(1)+'" r="4" tabindex="0" role="img" aria-label="'+escapeHtml(point.data.month+": "+money(point.data.revenue))+'"><title>'+escapeHtml(point.data.month+": "+money(point.data.revenue))+'</title></circle>';
+      }).join("");
+      document.getElementById("monthly-chart").innerHTML =
+        '<svg viewBox="0 0 '+width+' '+height+'" role="img" aria-labelledby="revenue-svg-title revenue-svg-desc">'+
+        '<title id="revenue-svg-title">Monthly revenue</title><desc id="revenue-svg-desc">Revenue after discounts by month, in '+escapeHtml(currency)+'.</desc>'+
+        grid+'<polygon class="chart-area" points="'+areaPoints+'"></polygon><polyline class="chart-line" points="'+linePoints+'"></polyline>'+circles+labels+
+        '<text class="axis-label" x="'+left+'" y="'+(height-1)+'">Revenue ('+escapeHtml(currency)+')</text></svg>';
+    }
+
+    function renderSegments() {
+      const rows = dashboardData.segments.slice().sort(function (a,b) { return Number(b.total_revenue)-Number(a.total_revenue); });
+      document.getElementById("segment-list").innerHTML = rows.map(function (row) {
+        return '<div class="segment-row"><span class="segment-name">'+escapeHtml(row.segment)+'</span><div class="bar-track" role="img" aria-label="'+escapeHtml(row.segment+": "+row.revenue_share_pct+" percent of revenue")+'"><div class="bar-fill" style="width:'+Math.min(100,Number(row.revenue_share_pct)).toFixed(1)+'%"></div></div><span class="segment-value">'+escapeHtml(row.revenue_share_pct.toFixed(1))+'% · '+escapeHtml(integer(row.customer_count))+'</span></div>';
+      }).join("");
+      document.getElementById("segment-foot").textContent = "Bars show revenue share; numbers show share and customer count.";
+    }
+
+    function renderPriorities() {
+      const rows = dashboardData.categories.slice().sort(function (a,b) { return Number(a.priority_rank)-Number(b.priority_rank); });
+      document.getElementById("priority-list").innerHTML = rows.map(function (row) {
+        return '<div class="priority-item"><span class="rank">#'+escapeHtml(row.priority_rank)+'</span><span class="priority-label">'+escapeHtml(row.category)+'</span><div class="priority-track" role="img" aria-label="'+escapeHtml(row.category+": review score "+row.priority_score+" out of 100")+'"><div class="priority-fill" style="width:'+Math.max(0,Math.min(100,Number(row.priority_score))).toFixed(1)+'%"></div></div><span class="priority-score">'+escapeHtml(Number(row.priority_score).toFixed(1))+'</span></div>';
+      }).join("");
+    }
+
+    function renderRecommendations() {
+      const byPriority = dashboardData.categories.slice().sort(function (a,b) { return Number(a.priority_rank)-Number(b.priority_rank); });
+      const byRevenue = dashboardData.categories.slice().sort(function (a,b) { return Number(b.revenue)-Number(a.revenue); });
+      const atRisk = dashboardData.segments.find(function (row) { return row.role === "at_risk"; });
+      const items = [
+        {title:"Review "+byPriority[0].category,body:"It ranks first on the configured score. Check its reach and revenue-per-customer gap, then test one measurable merchandising or availability change."},
+        {title:"Protect "+byRevenue[0].category,body:byRevenue[0].revenue_share_pct.toFixed(1)+"% of sample revenue comes from this category. Monitor availability and category revenue."}
+      ];
+      if (atRisk && Number(atRisk.customer_count) > 0) {
+        items.push({title:"Test a win-back",body:integer(atRisk.customer_count)+" customers match the configured at-risk rule. Use a holdout and compare repeat-purchase rate and incremental revenue."});
+      } else {
+        items.push({title:"Measure before scaling",body:"Use a small controlled test and compare outcomes with a holdout before expanding any customer or category action."});
+      }
+      document.getElementById("recommendations").innerHTML = items.map(function (item) {
+        return '<article class="recommendation"><h3>'+escapeHtml(item.title)+'</h3><p>'+escapeHtml(item.body)+'</p></article>';
+      }).join("");
+    }
+
+    function renderCategoryTable() {
+      const rows = dashboardData.categories.slice().sort(function (a,b) { return Number(a.priority_rank)-Number(b.priority_rank); });
+      document.getElementById("category-rows").innerHTML = rows.map(function (row) {
+        const rankNote = Number(row.priority_rank) === Number(row.equal_weight_rank) ? "" : '<div class="rank-change">equal-weight rank '+escapeHtml(row.equal_weight_rank)+'</div>';
+        return '<tr><td>'+escapeHtml(row.category)+'</td><td class="numeric">'+escapeHtml(money(row.revenue))+'</td><td class="numeric">'+escapeHtml(integer(row.customer_count))+'</td><td class="numeric">'+escapeHtml(Number(row.revenue_share_pct).toFixed(1))+'%</td><td class="numeric score-cell">'+escapeHtml(Number(row.priority_score).toFixed(1))+'</td><td class="numeric">'+escapeHtml(row.equal_weight_rank)+rankNote+'</td></tr>';
+      }).join("");
+    }
+
+    function renderCustomerTable() {
+      const query = document.getElementById("customer-search").value.trim().toLowerCase();
+      const selectedSegment = document.getElementById("segment-filter").value;
+      const matches = dashboardData.customers.filter(function (customer) {
+        const matchesQuery = !query || customer.customer_id.toLowerCase().includes(query);
+        const matchesSegment = !selectedSegment || customer.segment === selectedSegment;
+        return matchesQuery && matchesSegment;
+      });
+      const rows = matches.slice(0,100);
+      document.getElementById("customer-count").textContent = "Showing "+integer(rows.length)+" of "+integer(matches.length)+" matching customers, sorted by period revenue.";
+      document.getElementById("customer-rows").innerHTML = rows.length ? rows.map(function (row) {
+        return '<tr><td class="customer-id">'+escapeHtml(row.customer_id)+'</td><td><span class="segment-pill">'+escapeHtml(row.segment)+'</span></td><td class="numeric">'+escapeHtml(integer(row.recency_days))+'</td><td class="numeric">'+escapeHtml(integer(row.frequency))+'</td><td class="numeric">'+escapeHtml(money(row.monetary_value,2))+'</td><td class="numeric">'+escapeHtml(row.rfm_code)+'</td></tr>';
+      }).join("") : '<tr><td colspan="6" class="empty-state">No customers match these filters.</td></tr>';
+    }
+
+    function initializeDashboard() {
+      renderMetrics();
+      renderMonthlyChart();
+      renderSegments();
+      renderPriorities();
+      renderRecommendations();
+      renderCategoryTable();
+      const filter = document.getElementById("segment-filter");
+      dashboardData.segments.slice().sort(function (a,b) { return a.segment.localeCompare(b.segment); }).forEach(function (segment) {
+        const option = document.createElement("option");
+        option.value = segment.segment;
+        option.textContent = segment.segment;
+        filter.appendChild(option);
+      });
+      document.getElementById("customer-search").addEventListener("input",renderCustomerTable);
+      filter.addEventListener("change",renderCustomerTable);
+      renderCustomerTable();
+    }
+    initializeDashboard();
+  </script>
+</body>
+</html>
